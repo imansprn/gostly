@@ -67,11 +67,11 @@ cd frontend && npm test
 
 # Format code
 go fmt ./...
-cd frontend && npm run format
+# Frontend formatting: npm run format (not configured - add prettier to package.json)
 
 # Lint code
 go vet ./...
-cd frontend && npm run lint
+# Frontend linting: npm run lint (not configured - add eslint to package.json)
 ```
 
 ## 📝 Code Style Guidelines

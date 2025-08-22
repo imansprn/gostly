@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Profile } from '../types';
+import { Profile, LogEntry, TimelineEvent } from '../types';
 import ProfileForm from '../components/ProfileForm';
 import ProfileTable from '../components/ProfileTable';
 import Sidebar from '../components/Sidebar';
+import LogsMonitor from '../components/LogsMonitor';
+import ActivityTimeline from '../components/ActivityTimeline';
+import AdvancedConfig from '../components/AdvancedConfig';
 
 const Dashboard: React.FC = () => {
   const [profiles, setProfiles] = useState<Profile[]>([]);
@@ -11,9 +14,9 @@ const Dashboard: React.FC = () => {
   const [showForm, setShowForm] = useState(false);
   const [editingProfile, setEditingProfile] = useState<Profile | null>(null);
   const [activeTab, setActiveTab] = useState('proxies');
-  const [activityLogs, setActivityLogs] = useState<any[]>([]);
+  const [activityLogs, setActivityLogs] = useState<TimelineEvent[]>([]);
   const [activityLogsLoading, setActivityLogsLoading] = useState(false);
-  const [systemLogs, setSystemLogs] = useState<any[]>([]);
+  const [systemLogs, setSystemLogs] = useState<LogEntry[]>([]);
   const [logsLoading, setLogsLoading] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -87,17 +90,57 @@ const Dashboard: React.FC = () => {
         setActivityLogs([
           {
             id: 1,
+            type: 'proxy_action',
             profile_name: 'HTTP Proxy',
             action: 'started',
+            details: 'Profile "HTTP Proxy" was started successfully',
             timestamp: new Date(Date.now() - 2 * 60 * 1000).toISOString(), // 2 minutes ago
             status: 'success'
           },
           {
             id: 2,
+            type: 'proxy_action',
             profile_name: 'Local SOCKS5',
             action: 'created',
+            details: 'Profile "Local SOCKS5" was created successfully',
             timestamp: new Date(Date.now() - 60 * 60 * 1000).toISOString(), // 1 hour ago
             status: 'success'
+          },
+          {
+            id: 3,
+            type: 'configuration',
+            profile_name: 'HTTP Proxy',
+            action: 'updated',
+            details: 'Proxy configuration modified: changed port from 8080 to 8081',
+            timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
+            status: 'success'
+          },
+          {
+            id: 4,
+            type: 'system',
+            profile_name: '',
+            action: 'maintenance',
+            details: 'System maintenance completed: updated GOST engine to version 3.2.4',
+            timestamp: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(), // 6 hours ago
+            status: 'success'
+          },
+          {
+            id: 5,
+            type: 'error',
+            profile_name: 'HTTP Proxy',
+            action: 'connection_failed',
+            details: 'Failed to establish connection to upstream server 192.168.1.100:8080',
+            timestamp: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString(), // 8 hours ago
+            status: 'error'
+          },
+          {
+            id: 6,
+            type: 'proxy_action',
+            profile_name: 'Shadowsocks',
+            action: 'stopped',
+            details: 'Profile "Shadowsocks" was stopped due to configuration error',
+            timestamp: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(), // 12 hours ago
+            status: 'warning'
           }
         ]);
       }
@@ -133,7 +176,7 @@ const Dashboard: React.FC = () => {
             level: 'INFO',
             source: 'system',
             message: 'Gostly API initialized successfully',
-            profile_id: null,
+            profile_id: undefined,
             profile_name: ''
           },
           {
@@ -144,6 +187,42 @@ const Dashboard: React.FC = () => {
             message: 'Profile "HTTP Proxy" created successfully (ID: 2)',
             profile_id: 2,
             profile_name: 'HTTP Proxy'
+          },
+          {
+            id: 3,
+            timestamp: new Date(Date.now() - 30 * 1000).toISOString(),
+            level: 'INFO',
+            source: 'proxy',
+            message: 'HTTP Proxy started on :8080',
+            profile_id: 2,
+            profile_name: 'HTTP Proxy'
+          },
+          {
+            id: 4,
+            timestamp: new Date(Date.now() - 15 * 1000).toISOString(),
+            level: 'WARN',
+            source: 'proxy',
+            message: 'Connection timeout from 192.168.1.100:54321',
+            profile_id: 2,
+            profile_name: 'HTTP Proxy'
+          },
+          {
+            id: 5,
+            timestamp: new Date(Date.now() - 10 * 1000).toISOString(),
+            level: 'ERROR',
+            source: 'proxy',
+            message: 'Failed to establish connection to upstream server',
+            profile_id: 2,
+            profile_name: 'HTTP Proxy'
+          },
+          {
+            id: 6,
+            timestamp: new Date(Date.now() - 5 * 1000).toISOString(),
+            level: 'DEBUG',
+            source: 'system',
+            message: 'Memory usage: 45.2MB, CPU: 12.3%',
+            profile_id: undefined,
+            profile_name: ''
           }
         ]);
       }
@@ -290,6 +369,36 @@ const Dashboard: React.FC = () => {
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
+  };
+
+  // Handle clearing logs
+  const handleClearLogs = async () => {
+    try {
+      if (isWails && window.go?.main?.App?.ClearLogs) {
+        await window.go.main.App.ClearLogs();
+        setSystemLogs([]);
+      }
+    } catch (err) {
+      console.error('Failed to clear logs:', err);
+    }
+  };
+
+  // Handle saving configuration
+  const handleSaveConfig = async (config: string): Promise<boolean> => {
+    try {
+      // In a real implementation, this would save to the backend
+      console.log('Saving configuration:', config);
+      return true;
+    } catch (err) {
+      console.error('Failed to save configuration:', err);
+      return false;
+    }
+  };
+
+  // Handle resetting configuration
+  const handleResetConfig = () => {
+    // In a real implementation, this would reset to default
+    console.log('Resetting configuration to default');
   };
 
   const handleToggleSidebar = () => {
@@ -529,160 +638,40 @@ const Dashboard: React.FC = () => {
                 )}
                 
                 {activeTab === 'logs' && (
-                  <div className="bg-white rounded-lg border border-slate-200 p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-lg font-medium text-slate-900">Real-time Logs</h3>
-                      <button
-                        onClick={fetchLogs}
-                        className="px-3 py-1 text-sm bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-md transition-colors duration-200"
-                      >
-                        Refresh
-                          </button>
-                    </div>
-                    
-                    {logsLoading ? (
-                      <div className="text-center py-8">
-                        <div className="inline-flex items-center px-4 py-2 bg-slate-50 rounded-lg">
-                          <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-slate-600" fill="none" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                          </svg>
-                          <span className="text-slate-600 font-medium">Loading logs...</span>
-                        </div>
-                      </div>
-                    ) : systemLogs.length === 0 ? (
-                      <div className="text-center py-8">
-                        <div className="w-16 h-16 bg-slate-200 rounded-full flex items-center justify-center mx-auto mb-4">
-                          <svg className="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                          </svg>
-                        </div>
-                        <h3 className="text-lg font-medium text-slate-900 mb-2">No logs yet</h3>
-                        <p className="text-slate-600">System logs will appear here as you use the application</p>
-                        </div>
-                      ) : (
-                      <div className="bg-slate-900 text-green-400 p-4 rounded-lg font-mono text-sm h-64 overflow-auto">
-                        {systemLogs.map((log) => {
-                          const getLevelColor = (level: string) => {
-                            switch (level) {
-                              case 'ERROR': return 'text-red-400';
-                              case 'WARN': return 'text-yellow-400';
-                              case 'INFO': return 'text-green-400';
-                              case 'DEBUG': return 'text-blue-400';
-                              default: return 'text-slate-400';
-                              }
-                            };
-                          
-                          const formatTimestamp = (timestamp: string) => {
-                            const date = new Date(timestamp);
-                            return date.toLocaleTimeString();
-                          };
-                          
-                          return (
-                            <div key={log.id} className="mb-1">
-                              <span className="text-slate-400">[{formatTimestamp(log.timestamp)}]</span>{' '}
-                              <span className={getLevelColor(log.level)}>[{log.level}]</span>{' '}
-                              <span className="text-blue-400">[{log.source}]</span>{' '}
-                              {log.profile_name && (
-                                <span className="text-purple-400">({log.profile_name})</span>
-                              )}{' '}
-                              <span className="text-white">{log.message}</span>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
+                  <LogsMonitor
+                    logs={systemLogs}
+                    loading={logsLoading}
+                    onRefresh={fetchLogs}
+                    onClearLogs={handleClearLogs}
+                  />
                 )}
                 
                 {activeTab === 'timeline' && (
-                  <div className="bg-white rounded-lg border border-slate-200 p-6">
-                    <h3 className="text-lg font-medium text-slate-900 mb-4">Activity Timeline</h3>
-                    {activityLogsLoading ? (
-                      <div className="text-center py-8">
-                        <div className="inline-flex items-center px-4 py-2 bg-slate-50 rounded-lg">
-                          <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-slate-600" fill="none" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                          </svg>
-                          <span className="text-slate-600 font-medium">Loading activity logs...</span>
-                        </div>
-                      </div>
-                    ) : activityLogs.length === 0 ? (
-                      <div className="text-center py-8">
-                        <div className="w-16 h-16 bg-slate-200 rounded-full flex items-center justify-center mx-auto mb-4">
-                          <svg className="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                          </svg>
-                        </div>
-                        <h3 className="text-lg font-medium text-slate-900 mb-2">No activity yet</h3>
-                        <p className="text-slate-600">Activity logs will appear here as you manage profiles</p>
-                        </div>
-                      ) : (
-                      <div className="space-y-4">
-                        {activityLogs.map((log) => {
-                          const getActionColor = (action: string) => {
-                            switch (action) {
-                              case 'created': return 'bg-blue-500';
-                              case 'updated': return 'bg-yellow-500';
-                              case 'deleted': return 'bg-red-500';
-                              case 'started': return 'bg-green-500';
-                              case 'stopped': return 'bg-orange-500';
-                              default: return 'bg-slate-500';
-                            }
-                          };
-                          
-                          const getActionLabel = (action: string) => {
-                            switch (action) {
-                              case 'created': return 'Profile created';
-                              case 'updated': return 'Profile updated';
-                              case 'deleted': return 'Profile deleted';
-                              case 'started': return 'Profile started';
-                              case 'stopped': return 'Profile stopped';
-                              default: return action;
-                            }
-                          };
-                          
-                          const formatTimeAgo = (timestamp: string) => {
-                            const now = new Date();
-                            const logTime = new Date(timestamp);
-                            const diffMs = now.getTime() - logTime.getTime();
-                            const diffMins = Math.floor(diffMs / (1000 * 60));
-                            const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-                            const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-                            
-                            if (diffMins < 1) return 'Just now';
-                            if (diffMins < 60) return `${diffMins} minute${diffMins !== 1 ? 's' : ''} ago`;
-                            if (diffHours < 24) return `${diffHours} hour${diffHours !== 1 ? 's' : ''} ago`;
-                            return `${diffDays} day${diffDays !== 1 ? 's' : ''} ago`;
-                          };
-                          
-                          return (
-                            <div key={log.id} className="flex items-center space-x-3">
-                              <div className={`w-2 h-2 ${getActionColor(log.action)} rounded-full`}></div>
-                              <span className="text-sm text-slate-600">
-                                {getActionLabel(log.action)}: <span className="font-medium">{log.profile_name}</span>
-                              </span>
-                              <span className="text-xs text-slate-400">{formatTimeAgo(log.timestamp)}</span>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
+                  <ActivityTimeline
+                    events={activityLogs}
+                    loading={activityLogsLoading}
+                    onRefresh={fetchActivityLogs}
+                  />
                 )}
                 
                 {activeTab === 'advanced' && (
-                  <div className="bg-white rounded-lg border border-slate-200 p-6">
-                    <h3 className="text-lg font-medium text-slate-900 mb-4">Advanced Configuration</h3>
-                    <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
-                      <textarea
-                        className="w-full h-64 bg-transparent border-none outline-none font-mono text-sm text-slate-700 resize-none"
-                        placeholder="Raw GOST configuration will appear here..."
-                        readOnly
-                      />
-                    </div>
-                  </div>
+                  <AdvancedConfig
+                    currentConfig={`{
+  "servers": [
+    {
+      "addr": ":8080",
+      "handler": {
+        "type": "http"
+      },
+      "listener": {
+        "type": "tcp"
+      }
+    }
+  ]
+}`}
+                    onSaveConfig={handleSaveConfig}
+                    onResetConfig={handleResetConfig}
+                  />
                 )}
               </div>
             )}

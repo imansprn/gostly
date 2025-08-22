@@ -84,7 +84,10 @@ coverage.txt
 
 # Wails specific
 .wails/
-wails.json
+wailsjs/
+gostly
+appicon.icns
+# Note: wails.json should NOT be ignored - it's your project configuration
 
 # Backup files
 *.bak

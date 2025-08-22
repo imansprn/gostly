@@ -11,6 +11,8 @@ import (
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/options"
 	"github.com/wailsapp/wails/v2/pkg/options/assetserver"
+	"github.com/wailsapp/wails/v2/pkg/options/mac"
+	"github.com/wailsapp/wails/v2/pkg/options/windows"
 )
 
 //go:embed all:frontend/dist
@@ -27,8 +29,8 @@ func main() {
 	// Create application with options
 	err := wails.Run(&options.App{
 		Title:  "gostly",
-		Width:  1024,
-		Height: 768,
+		Width:  1400,
+		Height: 900,
 		AssetServer: &assetserver.Options{
 			Assets: assets,
 		},
@@ -37,6 +39,19 @@ func main() {
 		OnShutdown:       app.shutdown,
 		Bind: []interface{}{
 			app,
+		},
+		// Platform-specific options
+		Mac: &mac.Options{
+			TitleBar: mac.TitleBarHiddenInset(),
+			About: &mac.AboutInfo{
+				Title:   "Gostly",
+				Message: "GOST Proxy Manager",
+			},
+		},
+		Windows: &windows.Options{
+			WebviewIsTransparent: false,
+			WindowIsTranslucent:  false,
+			DisableWindowIcon:    false,
 		},
 	})
 

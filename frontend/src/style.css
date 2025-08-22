@@ -12,3 +12,35 @@ body {
 #app {
     height: 100vh;
 }
+
+/* Custom Select Box Styling */
+select {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 1em;
+    padding-right: 2.5rem;
+}
+
+select:focus {
+    outline: none;
+}
+
+/* Ensure consistent select box appearance across browsers */
+select::-ms-expand {
+    display: none;
+}
+
+/* Logo transparency and display */
+.logo-transparent {
+    background: transparent !important;
+    mix-blend-mode: multiply;
+}
+
+.logo-transparent img {
+    background: transparent !important;
+    mix-blend-mode: multiply;
+}

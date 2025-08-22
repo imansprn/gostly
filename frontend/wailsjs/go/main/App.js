@@ -18,6 +18,14 @@ export function GetActivityLogs() {
   return window['go']['main']['App']['GetActivityLogs']();
 }
 
+export function GetGostDebugInfo() {
+  return window['go']['main']['App']['GetGostDebugInfo']();
+}
+
+export function GetGostVersion() {
+  return window['go']['main']['App']['GetGostVersion']();
+}
+
 export function GetLogs() {
   return window['go']['main']['App']['GetLogs']();
 }
@@ -36,6 +44,10 @@ export function GetRecentActivityLogs(arg1) {
 
 export function GetRecentLogs(arg1) {
   return window['go']['main']['App']['GetRecentLogs'](arg1);
+}
+
+export function IsGostAvailable() {
+  return window['go']['main']['App']['IsGostAvailable']();
 }
 
 export function StartProfile(arg1) {

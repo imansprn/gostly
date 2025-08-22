@@ -8,6 +8,8 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
+	"strings"
 	"sync"
 	"time"
 
@@ -21,6 +23,8 @@ type API struct {
 	mutex     sync.Mutex
 	logs      []LogEntry
 	logMutex  sync.RWMutex
+	gostAvailable bool
+	gostVersion   string
 }
 
 // LogEntry represents a log entry from GOST or system
@@ -48,10 +52,272 @@ func New() (*API, error) {
 		logs:      []LogEntry{},
 	}
 
+	// Check GOST availability and try to install if needed
+	api.checkAndInstallGost()
+
 	// Add initial system log
 	api.addLog("INFO", "system", "Gostly API initialized successfully", nil, "")
 
 	return api, nil
+}
+
+// checkAndInstallGost checks if GOST is available and tries to install it if missing
+func (a *API) checkAndInstallGost() {
+	// Check if GOST is available
+	if a.isGostAvailable() {
+		a.gostAvailable = true
+		version, err := a.getGostVersion()
+		if err == nil {
+			a.gostVersion = version
+		}
+		a.addLog("INFO", "system", fmt.Sprintf("GOST detected: %s", version), nil, "")
+		return
+	}
+
+	// Try to install GOST
+	a.addLog("INFO", "system", "GOST not found, attempting to install...", nil, "")
+	if a.installGost() {
+		a.gostAvailable = true
+		version, err := a.getGostVersion()
+		if err == nil {
+			a.gostVersion = version
+		}
+		a.addLog("INFO", "system", fmt.Sprintf("GOST installed successfully: %s", a.gostVersion), nil, "")
+	} else {
+		a.gostAvailable = false
+		a.addLog("WARN", "system", "GOST installation failed, running in fallback mode", nil, "")
+	}
+}
+
+// GetGostDebugInfo returns debug information about GOST detection
+func (a *API) GetGostDebugInfo() map[string]interface{} {
+	info := make(map[string]interface{})
+	
+	// Get current PATH
+	info["PATH"] = os.Getenv("PATH")
+	
+	// Check GOST in PATH
+	if path, err := exec.LookPath("gost"); err == nil {
+		info["gost_in_path"] = path
+	} else {
+		info["gost_in_path"] = "not found"
+	}
+	
+	// Check common locations
+	commonPaths := []string{
+		"/usr/local/bin/gost",
+		"/usr/bin/gost",
+		"/opt/homebrew/bin/gost",
+		"/usr/local/opt/gost/bin/gost",
+		"./gost",
+	}
+	
+	locationResults := make(map[string]interface{})
+	for _, path := range commonPaths {
+		if _, err := os.Stat(path); err == nil {
+			if info, err := os.Stat(path); err == nil {
+				locationResults[path] = map[string]interface{}{
+					"exists": true,
+					"executable": info.Mode()&0111 != 0,
+					"size": info.Size(),
+				}
+			}
+		} else {
+			locationResults[path] = map[string]interface{}{
+				"exists": false,
+				"error": err.Error(),
+			}
+		}
+	}
+	info["common_locations"] = locationResults
+	
+	// Current GOST status
+	info["gost_available"] = a.gostAvailable
+	info["gost_version"] = a.gostVersion
+	
+	return info
+}
+
+// getGostPath returns the full path to the GOST binary
+func (a *API) getGostPath() string {
+	// First try the current PATH
+	if path, err := exec.LookPath("gost"); err == nil {
+		return path
+	}
+
+	// If not found in PATH, check common locations
+	commonPaths := []string{
+		"/usr/local/bin/gost",
+		"/usr/bin/gost",
+		"/opt/homebrew/bin/gost", // Apple Silicon Homebrew
+		"/usr/local/opt/gost/bin/gost", // Homebrew formula
+		"./gost", // Current directory
+	}
+
+	for _, path := range commonPaths {
+		if _, err := os.Stat(path); err == nil {
+			// Check if it's executable
+			if info, err := os.Stat(path); err == nil {
+				if info.Mode()&0111 != 0 {
+					return path
+				}
+			}
+		}
+	}
+
+	// Fallback to "gost" if nothing else works
+	return "gost"
+}
+
+// isGostAvailable checks if GOST is available in the system
+func (a *API) isGostAvailable() bool {
+	// First try the current PATH
+	if _, err := exec.LookPath("gost"); err == nil {
+		return true
+	}
+
+	// If not found in PATH, check common locations
+	commonPaths := []string{
+		"/usr/local/bin/gost",
+		"/usr/bin/gost",
+		"/opt/homebrew/bin/gost", // Apple Silicon Homebrew
+		"/usr/local/opt/gost/bin/gost", // Homebrew formula
+		"./gost", // Current directory
+	}
+
+	for _, path := range commonPaths {
+		if _, err := os.Stat(path); err == nil {
+			// Check if it's executable
+			if info, err := os.Stat(path); err == nil {
+				if info.Mode()&0111 != 0 {
+					return true
+				}
+			}
+		}
+	}
+
+	return false
+}
+
+// getGostVersion gets the GOST version if available
+func (a *API) getGostVersion() (string, error) {
+	// First try the current PATH
+	if path, err := exec.LookPath("gost"); err == nil {
+		cmd := exec.Command(path, "-V")
+		output, err := cmd.Output()
+		if err == nil {
+			return strings.TrimSpace(string(output)), nil
+		}
+	}
+
+	// If not found in PATH, check common locations
+	commonPaths := []string{
+		"/usr/local/bin/gost",
+		"/usr/bin/gost",
+		"/opt/homebrew/bin/gost", // Apple Silicon Homebrew
+		"/usr/local/opt/gost/bin/gost", // Homebrew formula
+		"./gost", // Current directory
+	}
+
+	for _, path := range commonPaths {
+		if _, err := os.Stat(path); err == nil {
+			// Check if it's executable
+			if info, err := os.Stat(path); err == nil {
+				if info.Mode()&0111 != 0 {
+					cmd := exec.Command(path, "-V")
+					output, err := cmd.Output()
+					if err == nil {
+						return strings.TrimSpace(string(output)), nil
+					}
+				}
+			}
+		}
+	}
+
+	return "", fmt.Errorf("GOST not found in any common location")
+}
+
+// installGost attempts to install GOST using the appropriate package manager
+func (a *API) installGost() bool {
+	switch runtime.GOOS {
+	case "darwin":
+		return a.installGostOnMac()
+	case "linux":
+		return a.installGostOnLinux()
+	case "windows":
+		return a.installGostOnWindows()
+	default:
+		return false
+	}
+}
+
+// installGostOnMac installs GOST on macOS using Homebrew
+func (a *API) installGostOnMac() bool {
+	// Check if Homebrew is available
+	if _, err := exec.LookPath("brew"); err != nil {
+		a.addLog("WARN", "system", "Homebrew not found, cannot install GOST automatically", nil, "")
+		return false
+	}
+
+	// Try to install GOST using Homebrew
+	cmd := exec.Command("brew", "install", "gost")
+	if err := cmd.Run(); err != nil {
+		a.addLog("ERROR", "system", fmt.Sprintf("Failed to install GOST via Homebrew: %v", err), nil, "")
+		return false
+	}
+
+	return true
+}
+
+// installGostOnLinux installs GOST on Linux
+func (a *API) installGostOnLinux() bool {
+	// Try different package managers
+	packageManagers := []string{"apt", "yum", "dnf", "pacman"}
+	
+	for _, pm := range packageManagers {
+		if _, err := exec.LookPath(pm); err == nil {
+			switch pm {
+			case "apt":
+				cmd := exec.Command("sudo", "apt", "update")
+				cmd.Run() // Ignore errors for update
+				cmd = exec.Command("sudo", "apt", "install", "-y", "gost")
+				if err := cmd.Run(); err == nil {
+					return true
+				}
+			case "yum", "dnf":
+				cmd := exec.Command("sudo", pm, "install", "-y", "gost")
+				if err := cmd.Run(); err == nil {
+					return true
+				}
+			case "pacman":
+				cmd := exec.Command("sudo", "pacman", "-S", "--noconfirm", "gost")
+				if err := cmd.Run(); err == nil {
+					return true
+				}
+			}
+		}
+	}
+	
+	a.addLog("ERROR", "system", "No supported package manager found for GOST installation", nil, "")
+	return false
+}
+
+// installGostOnWindows installs GOST on Windows
+func (a *API) installGostOnWindows() bool {
+	// On Windows, we'll try to download and install GOST manually
+	// This is more complex and would require downloading from GitHub releases
+	a.addLog("WARN", "system", "Automatic GOST installation on Windows not yet implemented", nil, "")
+	return false
+}
+
+// IsGostAvailable returns whether GOST is available
+func (a *API) IsGostAvailable() bool {
+	return a.gostAvailable
+}
+
+// GetGostVersion returns the GOST version if available
+func (a *API) GetGostVersion() string {
+	return a.gostVersion
 }
 
 // Close closes the API and releases resources
@@ -234,6 +500,12 @@ type GostConfig struct {
 
 // StartProfile starts a profile
 func (a *API) StartProfile(id int64) error {
+	// Check if GOST is available
+	if !a.gostAvailable {
+		a.addLog("ERROR", "api", fmt.Sprintf("Cannot start profile %d: GOST is not available", id), &id, "")
+		return fmt.Errorf("GOST is not available. Please install GOST or restart the application to auto-install")
+	}
+
 	// Check if profile is already running
 	a.mutex.Lock()
 	if _, ok := a.processes[id]; ok {
@@ -262,7 +534,8 @@ func (a *API) StartProfile(id int64) error {
 	a.addLog("DEBUG", "api", fmt.Sprintf("Config file created: %s", configPath), &id, profile.Name)
 
 	// Start GOST process with output capture
-	cmd := exec.Command("gost", "-C", configPath)
+	gostPath := a.getGostPath()
+	cmd := exec.Command(gostPath, "-C", configPath)
 
 	// Capture stdout and stderr
 	stdout, err := cmd.StdoutPipe()

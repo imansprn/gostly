@@ -1,0 +1,32 @@
+{
+  "name": "gostly",
+  "outputfilename": "gostly",
+  "frontend:install": "npm install",
+  "frontend:build": "npm run build",
+  "frontend:dev:watcher": "npm run dev",
+  "frontend:dev:serverUrl": "auto",
+  "author": {
+    "name": "gobliggg",
+    "email": "your-email@example.com"
+  },
+  "info": {
+    "companyName": "Gostly",
+    "productName": "Gostly - GOST Proxy Manager",
+    "productVersion": "1.0.0",
+    "copyright": "Copyright........",
+    "comments": "Built using Wails (https://wails.io)"
+  },
+  "build": {
+    "icon": "build/appicon.png",
+    "platforms": [
+      "darwin/amd64",
+      "darwin/arm64",
+      "linux/amd64",
+      "linux/arm64",
+      "windows/amd64"
+    ]
+  },
+  "mac": {
+    "icon": "appicon.icns"
+  }
+}

@@ -3,7 +3,6 @@ import { Profile } from '../types';
 import ProfileForm from '../components/ProfileForm';
 import ProfileTable from '../components/ProfileTable';
 import Sidebar from '../components/Sidebar';
-import TopBar from '../components/TopBar';
 
 const Dashboard: React.FC = () => {
   const [profiles, setProfiles] = useState<Profile[]>([]);
@@ -18,12 +17,63 @@ const Dashboard: React.FC = () => {
   const [logsLoading, setLogsLoading] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [logsSearchQuery, setLogsSearchQuery] = useState('');
+  const [timelineSearchQuery, setTimelineSearchQuery] = useState('');
+  const [configSearchQuery, setConfigSearchQuery] = useState('');
+  
+  // Logs functionality state
+  const [autoScrollEnabled, setAutoScrollEnabled] = useState(true);
+  const [logsPaused, setLogsPaused] = useState(false);
+  const [selectedLogLevel, setSelectedLogLevel] = useState('all');
+  const [lastUpdated, setLastUpdated] = useState(new Date());
+  
+  // GOST service status
+  const [gostStatus, setGostStatus] = useState({
+    serviceRunning: false,
+    version: '',
+    uptime: '',
+    lastCheck: new Date()
+  });
+
+  // GOST availability status
+  const [gostAvailable, setGostAvailable] = useState(false);
+  const [gostVersion, setGostVersion] = useState('');
+
+  // Connection status
+  const [connectionStatus, setConnectionStatus] = useState({ 
+    isConnected: false, 
+    activeProfiles: 0, 
+    totalProfiles: 0 
+  });
+
   const [isWails] = useState(() => {
     return typeof window !== 'undefined' && window.go?.main?.App;
   });
 
   useEffect(() => {
     fetchProfiles();
+  }, []);
+
+  // Check GOST status every 10 seconds and on mount
+  useEffect(() => {
+    checkGostStatus(); // Check immediately on mount
+    checkGostAvailability(); // Check GOST availability
+    
+    const interval = setInterval(() => {
+      checkGostStatus();
+      checkGostAvailability(); // Also check availability periodically
+    }, 10000); // Check every 10 seconds
+    
+    return () => clearInterval(interval);
+  }, []);
+
+  // Update last updated time every 5 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setLastUpdated(new Date());
+    }, 5000);
+    
+    return () => clearInterval(interval);
   }, []);
 
   const fetchActivityLogs = async () => {
@@ -111,9 +161,10 @@ const Dashboard: React.FC = () => {
       if (isWails && window.go?.main?.App?.GetProfiles) {
         const data = await window.go.main.App.GetProfiles();
         setProfiles(Array.isArray(data) ? data : []);
+        updateConnectionStatus(Array.isArray(data) ? data : []);
       } else {
         // Mock data for browser development
-        setProfiles([
+        const mockProfiles = [
           {
             id: 1,
             name: 'Local SOCKS5',
@@ -134,7 +185,9 @@ const Dashboard: React.FC = () => {
             password: 'pass',
             status: 'running'
           }
-        ]);
+        ];
+        setProfiles(mockProfiles);
+        updateConnectionStatus(mockProfiles);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch profiles');
@@ -205,9 +258,13 @@ const Dashboard: React.FC = () => {
           await window.go.main.App.StopProfile(id);
         }
       }
-      setProfiles(prev => prev.map(p => 
+      setProfiles(prev => {
+        const updatedProfiles = prev.map(p => 
         p.id === id ? { ...p, status: start ? 'running' : 'stopped' } : p
-      ));
+        );
+        updateConnectionStatus(updatedProfiles);
+        return updatedProfiles;
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to toggle profile');
     }
@@ -239,6 +296,72 @@ const Dashboard: React.FC = () => {
     setSidebarCollapsed(!sidebarCollapsed);
   };
 
+  // Check GOST availability
+  const checkGostAvailability = async () => {
+    try {
+      if (isWails && window.go?.main?.App?.IsGostAvailable) {
+        const available = await window.go.main.App.IsGostAvailable();
+        setGostAvailable(available);
+        
+        if (available && window.go?.main?.App?.GetGostVersion) {
+          const version = await window.go.main.App.GetGostVersion();
+          setGostVersion(version);
+        }
+    } else {
+        // Mock GOST availability for browser development
+        setGostAvailable(true);
+        setGostVersion('3.2.4');
+      }
+    } catch (error) {
+      console.error('Failed to check GOST availability:', error);
+      setGostAvailable(false);
+      setGostVersion('');
+    }
+  };
+
+  // Check real GOST service status
+  const checkGostStatus = async () => {
+    try {
+      if (isWails && window.go?.main?.App?.GetGostStatus) {
+        // Call the actual GOST status function from Go backend
+        const status = await window.go.main.App.GetGostStatus();
+        setGostStatus({
+          serviceRunning: status.running || false,
+          version: status.version || 'Unknown',
+          uptime: status.uptime || '',
+          lastCheck: new Date()
+        });
+      } else {
+        // Mock GOST status for browser development
+        const mockGostStatus = {
+          serviceRunning: Math.random() > 0.3, // 70% chance of running
+          version: '2.11.5',
+          uptime: Math.floor(Math.random() * 24) + 'h ' + Math.floor(Math.random() * 60) + 'm',
+          lastCheck: new Date()
+        };
+        setGostStatus(mockGostStatus);
+      }
+    } catch (error) {
+      console.error('Failed to check GOST status:', error);
+      setGostStatus(prev => ({
+        ...prev,
+        serviceRunning: false,
+        lastCheck: new Date()
+      }));
+    }
+  };
+
+  // Update connection status based on running profiles
+  const updateConnectionStatus = (profilesList: Profile[]) => {
+    const runningProfiles = profilesList.filter(p => p.status === 'running');
+    const isConnected = runningProfiles.length > 0;
+    setConnectionStatus({
+      isConnected,
+      activeProfiles: runningProfiles.length,
+      totalProfiles: profilesList.length
+    });
+  };
+
   // Filter profiles based on search query
   const filteredProfiles = profiles.filter(profile => {
     if (!searchQuery) return true;
@@ -253,12 +376,19 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="h-screen bg-slate-50 flex flex-col">
-      {/* Top Bar */}
-      <TopBar onSearch={handleSearch} onToggleSidebar={handleToggleSidebar} sidebarCollapsed={sidebarCollapsed} />
-      
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar */}
-        <Sidebar activeTab={activeTab} onTabChange={handleTabChange} collapsed={sidebarCollapsed} />
+        <Sidebar 
+          activeTab={activeTab} 
+          onTabChange={handleTabChange} 
+          collapsed={sidebarCollapsed} 
+          onToggleCollapse={handleToggleSidebar}
+          connectionStatus={connectionStatus}
+          gostStatus={gostStatus}
+          gostAvailable={gostAvailable}
+          gostVersion={gostVersion}
+          onRefreshGostStatus={checkGostStatus}
+        />
         
         {/* Main Content */}
         <div className="flex-1 flex flex-col overflow-hidden">
@@ -303,7 +433,89 @@ const Dashboard: React.FC = () => {
                 onCancel={handleFormCancel}
               />
             ) : (
-              <div>
+              <div className="space-y-4">
+                {/* Dashboard Overview Cards */}
+                {activeTab === 'proxies' && (
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {/* Total Proxies Card */}
+                    <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+                      <div className="flex items-center">
+                        <div className="flex-shrink-0">
+                          <div className="w-10 h-10 bg-gradient-to-br from-blue-100 to-blue-200 rounded-lg flex items-center justify-center">
+                            <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                            </svg>
+                          </div>
+                        </div>
+                        <div className="ml-3">
+                          <p className="text-sm font-medium text-slate-600">Total Proxies</p>
+                          <p className="text-xl font-bold text-slate-900">{profiles.length}</p>
+                          <p className="text-xs text-slate-500 mt-1">
+                            {profiles.length === 0 ? 'No profiles configured' : 
+                             profiles.length === 1 ? '1 profile configured' : 
+                             `${profiles.length} profiles configured`}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Active Connections Card */}
+                    <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+                      <div className="flex items-center">
+                        <div className="flex-shrink-0">
+                          <div className="w-10 h-10 bg-gradient-to-br from-emerald-100 to-emerald-200 rounded-lg flex items-center justify-center">
+                            <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                            </svg>
+                          </div>
+                        </div>
+                        <div className="ml-3">
+                          <p className="text-sm font-medium text-slate-600">Active Connections</p>
+                          <p className="text-xl font-bold text-slate-900">{profiles.filter(p => p.status === 'running').length}</p>
+                          <p className="text-xs text-slate-500 mt-1">
+                            {profiles.filter(p => p.status === 'running').length === 0 ? 'No active proxies' :
+                             profiles.filter(p => p.status === 'running').length === 1 ? '1 proxy running' :
+                             `${profiles.filter(p => p.status === 'running').length} proxies running`}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* System Status Card */}
+                    <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+                      <div className="flex items-center">
+                        <div className="flex-shrink-0">
+                          <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                            connectionStatus.activeProfiles > 0
+                              ? 'bg-gradient-to-br from-emerald-100 to-emerald-200' 
+                              : 'bg-gradient-to-br from-red-100 to-red-200'
+                          }`}>
+                            <svg className={`w-5 h-5 ${
+                              connectionStatus.activeProfiles > 0 ? 'text-emerald-600' : 'text-red-600'
+                            }`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                          </div>
+                        </div>
+                        <div className="ml-3">
+                          <p className="text-sm font-medium text-slate-600">System Status</p>
+                          <p className={`text-lg font-semibold ${
+                            connectionStatus.activeProfiles > 0 ? 'text-emerald-600' : 'text-red-600'
+                          }`}>
+                            {connectionStatus.activeProfiles > 0 ? 'Connected' : 'Disconnected'}
+                          </p>
+                          <p className="text-xs text-slate-500 mt-1">
+                            {connectionStatus.activeProfiles > 0 
+                              ? `${connectionStatus.activeProfiles} of ${connectionStatus.totalProfiles} proxies active`
+                              : 'No proxy connections active'}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Main Content */}
                 {activeTab === 'proxies' && (
                   <ProfileTable
                     profiles={filteredProfiles}
@@ -312,6 +524,7 @@ const Dashboard: React.FC = () => {
                     onEdit={handleEditProfileClick}
                     onDelete={handleDeleteProfile}
                     onToggle={handleToggleProfile}
+                    gostAvailable={gostAvailable}
                   />
                 )}
                 
@@ -324,7 +537,7 @@ const Dashboard: React.FC = () => {
                         className="px-3 py-1 text-sm bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-md transition-colors duration-200"
                       >
                         Refresh
-                      </button>
+                          </button>
                     </div>
                     
                     {logsLoading ? (
@@ -346,8 +559,8 @@ const Dashboard: React.FC = () => {
                         </div>
                         <h3 className="text-lg font-medium text-slate-900 mb-2">No logs yet</h3>
                         <p className="text-slate-600">System logs will appear here as you use the application</p>
-                      </div>
-                    ) : (
+                        </div>
+                      ) : (
                       <div className="bg-slate-900 text-green-400 p-4 rounded-lg font-mono text-sm h-64 overflow-auto">
                         {systemLogs.map((log) => {
                           const getLevelColor = (level: string) => {
@@ -357,8 +570,8 @@ const Dashboard: React.FC = () => {
                               case 'INFO': return 'text-green-400';
                               case 'DEBUG': return 'text-blue-400';
                               default: return 'text-slate-400';
-                            }
-                          };
+                              }
+                            };
                           
                           const formatTimestamp = (timestamp: string) => {
                             const date = new Date(timestamp);
@@ -404,8 +617,8 @@ const Dashboard: React.FC = () => {
                         </div>
                         <h3 className="text-lg font-medium text-slate-900 mb-2">No activity yet</h3>
                         <p className="text-slate-600">Activity logs will appear here as you manage profiles</p>
-                      </div>
-                    ) : (
+                        </div>
+                      ) : (
                       <div className="space-y-4">
                         {activityLogs.map((log) => {
                           const getActionColor = (action: string) => {

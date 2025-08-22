@@ -9,6 +9,12 @@ export interface Profile {
   status: string;
 }
 
+export interface GostStatus {
+  available: boolean;
+  version: string;
+  autoInstalled: boolean;
+}
+
 // Extend Window interface to include Wails go property
 declare global {
   interface Window {

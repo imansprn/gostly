@@ -11,6 +11,10 @@ export function DeleteProfile(arg1:number):Promise<void>;
 
 export function GetActivityLogs():Promise<Array<database.ActivityLog>>;
 
+export function GetGostDebugInfo():Promise<Record<string, any>>;
+
+export function GetGostVersion():Promise<string>;
+
 export function GetLogs():Promise<Array<api.LogEntry>>;
 
 export function GetProfile(arg1:number):Promise<database.Profile>;
@@ -20,6 +24,8 @@ export function GetProfiles():Promise<Array<database.Profile>>;
 export function GetRecentActivityLogs(arg1:number):Promise<Array<database.ActivityLog>>;
 
 export function GetRecentLogs(arg1:number):Promise<Array<api.LogEntry>>;
+
+export function IsGostAvailable():Promise<boolean>;
 
 export function StartProfile(arg1:number):Promise<void>;
 

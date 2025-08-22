@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -18,11 +17,11 @@ import (
 
 // API handles the application's business logic
 type API struct {
-	db        *database.DB
-	processes map[int64]*exec.Cmd
-	mutex     sync.Mutex
-	logs      []LogEntry
-	logMutex  sync.RWMutex
+	db            *database.DB
+	processes     map[int64]*exec.Cmd
+	mutex         sync.Mutex
+	logs          []LogEntry
+	logMutex      sync.RWMutex
 	gostAvailable bool
 	gostVersion   string
 }
@@ -92,17 +91,17 @@ func (a *API) checkAndInstallGost() {
 // GetGostDebugInfo returns debug information about GOST detection
 func (a *API) GetGostDebugInfo() map[string]interface{} {
 	info := make(map[string]interface{})
-	
+
 	// Get current PATH
 	info["PATH"] = os.Getenv("PATH")
-	
+
 	// Check GOST in PATH
 	if path, err := exec.LookPath("gost"); err == nil {
 		info["gost_in_path"] = path
 	} else {
 		info["gost_in_path"] = "not found"
 	}
-	
+
 	// Check common locations
 	commonPaths := []string{
 		"/usr/local/bin/gost",
@@ -111,30 +110,30 @@ func (a *API) GetGostDebugInfo() map[string]interface{} {
 		"/usr/local/opt/gost/bin/gost",
 		"./gost",
 	}
-	
+
 	locationResults := make(map[string]interface{})
 	for _, path := range commonPaths {
 		if _, err := os.Stat(path); err == nil {
 			if info, err := os.Stat(path); err == nil {
 				locationResults[path] = map[string]interface{}{
-					"exists": true,
+					"exists":     true,
 					"executable": info.Mode()&0111 != 0,
-					"size": info.Size(),
+					"size":       info.Size(),
 				}
 			}
 		} else {
 			locationResults[path] = map[string]interface{}{
 				"exists": false,
-				"error": err.Error(),
+				"error":  err.Error(),
 			}
 		}
 	}
 	info["common_locations"] = locationResults
-	
+
 	// Current GOST status
 	info["gost_available"] = a.gostAvailable
 	info["gost_version"] = a.gostVersion
-	
+
 	return info
 }
 
@@ -149,9 +148,9 @@ func (a *API) getGostPath() string {
 	commonPaths := []string{
 		"/usr/local/bin/gost",
 		"/usr/bin/gost",
-		"/opt/homebrew/bin/gost", // Apple Silicon Homebrew
+		"/opt/homebrew/bin/gost",       // Apple Silicon Homebrew
 		"/usr/local/opt/gost/bin/gost", // Homebrew formula
-		"./gost", // Current directory
+		"./gost",                       // Current directory
 	}
 
 	for _, path := range commonPaths {
@@ -180,9 +179,9 @@ func (a *API) isGostAvailable() bool {
 	commonPaths := []string{
 		"/usr/local/bin/gost",
 		"/usr/bin/gost",
-		"/opt/homebrew/bin/gost", // Apple Silicon Homebrew
+		"/opt/homebrew/bin/gost",       // Apple Silicon Homebrew
 		"/usr/local/opt/gost/bin/gost", // Homebrew formula
-		"./gost", // Current directory
+		"./gost",                       // Current directory
 	}
 
 	for _, path := range commonPaths {
@@ -214,9 +213,9 @@ func (a *API) getGostVersion() (string, error) {
 	commonPaths := []string{
 		"/usr/local/bin/gost",
 		"/usr/bin/gost",
-		"/opt/homebrew/bin/gost", // Apple Silicon Homebrew
+		"/opt/homebrew/bin/gost",       // Apple Silicon Homebrew
 		"/usr/local/opt/gost/bin/gost", // Homebrew formula
-		"./gost", // Current directory
+		"./gost",                       // Current directory
 	}
 
 	for _, path := range commonPaths {
@@ -273,7 +272,7 @@ func (a *API) installGostOnMac() bool {
 func (a *API) installGostOnLinux() bool {
 	// Try different package managers
 	packageManagers := []string{"apt", "yum", "dnf", "pacman"}
-	
+
 	for _, pm := range packageManagers {
 		if _, err := exec.LookPath(pm); err == nil {
 			switch pm {
@@ -297,7 +296,7 @@ func (a *API) installGostOnLinux() bool {
 			}
 		}
 	}
-	
+
 	a.addLog("ERROR", "system", "No supported package manager found for GOST installation", nil, "")
 	return false
 }
@@ -738,7 +737,7 @@ func (a *API) createConfigFile(profile *database.Profile) (string, error) {
 		return "", err
 	}
 
-	err = ioutil.WriteFile(configPath, configData, 0644)
+	err = os.WriteFile(configPath, configData, 0644)
 	if err != nil {
 		return "", err
 	}

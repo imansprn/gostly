@@ -12,7 +12,7 @@ interface TopBarProps {
 
 const TopBar: React.FC<TopBarProps> = ({ onToggleSidebar, sidebarCollapsed, connectionStatus }) => {
   return (
-    <div className="bg-white border-b border-slate-200 px-6 py-4">
+    <div className="bg-white border-b border-slate-200 px-6 py-4 topbar-draggable">
       <div className="flex items-center justify-between">
         {/* Left Side - Logo and Search */}
         <div className="flex items-center space-x-6">

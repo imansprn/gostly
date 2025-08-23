@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/gobliggg/gostly/pkg/api"
-	"github.com/gobliggg/gostly/pkg/database"
+	"github.com/imansprn/gostly/pkg/api"
+	"github.com/imansprn/gostly/pkg/database"
 )
 
 // App struct

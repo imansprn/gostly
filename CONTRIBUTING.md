@@ -287,7 +287,7 @@ We recognize contributors in several ways:
 
 ### Contact Maintainers
 
-- **GitHub**: @gobliggg and team
+- **GitHub**: @imansprn and team
 - **Email**: [team@gostly.dev](mailto:team@gostly.dev)
 - **Discord**: Join our community server
 

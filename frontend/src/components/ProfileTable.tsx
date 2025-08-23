@@ -170,18 +170,15 @@ const ProfileTable: React.FC<ProfileTableProps> = ({
     <div className="space-y-6">
       {/* GOST Availability Warning */}
       {gostAvailable === false && (
-        <div className="bg-orange-50 border border-orange-200 rounded-xl p-4">
-          <div className="flex items-center space-x-3">
-            <div className="flex-shrink-0">
-              <svg className="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-              </svg>
-            </div>
+        <div className="bg-slate-50 border border-slate-200 rounded p-3">
+          <div className="flex items-center space-x-2">
+            <svg className="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+            </svg>
             <div className="flex-1">
-              <h3 className="text-sm font-medium text-orange-800">GOST Engine Not Available</h3>
-              <p className="text-sm text-orange-700 mt-1">
-                The GOST proxy engine is not installed or not accessible. You can view and manage profiles, but cannot start proxy services. 
-                Restart the application to attempt automatic installation, or install GOST manually.
+              <h3 className="text-sm font-medium text-slate-800">GOST Engine Not Available</h3>
+              <p className="text-xs text-slate-600 mt-0.5">
+                GOST proxy engine not accessible. Restart app for auto-installation or install manually.
               </p>
             </div>
           </div>
@@ -190,36 +187,28 @@ const ProfileTable: React.FC<ProfileTableProps> = ({
 
       {/* Bulk Actions Bar */}
       {selectedProfiles.size > 0 && (
-        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 border-l-4 border-l-blue-500">
+        <div className="bg-white rounded border border-slate-200 p-3 border-l-2 border-l-slate-400">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2">
-                <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <span className="text-sm font-semibold text-slate-900">
-                  {selectedProfiles.size} profile{selectedProfiles.size !== 1 ? 's' : ''} selected
-                </span>
-              </div>
+            <div className="flex items-center space-x-3">
+              <span className="text-sm font-medium text-slate-700">
+                {selectedProfiles.size} selected
+              </span>
               <button
                 onClick={() => setSelectedProfiles(new Set())}
-                className="text-sm text-slate-500 hover:text-slate-700 transition-colors underline"
+                className="text-xs text-slate-500 hover:text-slate-700 underline"
               >
-                Clear selection
+                Clear
               </button>
             </div>
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-2">
               <button
                 onClick={() => {
                   selectedProfiles.forEach(id => onToggle(id, true));
                   setSelectedProfiles(new Set());
                 }}
-                className="inline-flex items-center px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white font-medium rounded-lg transition-all duration-200 shadow-sm hover:shadow-md"
+                className="px-3 py-1.5 text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 rounded transition-colors"
               >
-                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-                Start Selected
+                Start
               </button>
               
               <button
@@ -227,12 +216,9 @@ const ProfileTable: React.FC<ProfileTableProps> = ({
                   selectedProfiles.forEach(id => onToggle(id, false));
                   setSelectedProfiles(new Set());
                 }}
-                className="inline-flex items-center px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white font-medium rounded-lg transition-all duration-200 shadow-sm hover:shadow-md"
+                className="px-3 py-1.5 text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 rounded transition-colors"
               >
-                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-                Stop Selected
+                Stop
               </button>
               
               <button
@@ -242,12 +228,9 @@ const ProfileTable: React.FC<ProfileTableProps> = ({
                     setSelectedProfiles(new Set());
                   }
                 }}
-                className="inline-flex items-center px-4 py-2 bg-red-500 hover:bg-red-600 text-white font-medium rounded-lg transition-all duration-200 shadow-sm hover:shadow-md"
+                className="px-3 py-1.5 text-xs bg-slate-100 hover:bg-red-200 text-slate-700 hover:text-red-700 rounded transition-colors"
               >
-                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
-                Delete Selected
+                Delete
               </button>
             </div>
           </div>
@@ -255,13 +238,13 @@ const ProfileTable: React.FC<ProfileTableProps> = ({
       )}
 
       {/* Enhanced Table */}
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+      <div className="bg-white rounded border border-slate-200 overflow-hidden">
       {/* Table Header */}
-        <div className="px-6 py-4 border-b border-slate-200 bg-gradient-to-r from-slate-50 to-slate-100">
+        <div className="px-4 py-3 border-b border-slate-200 bg-slate-50">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-lg font-semibold text-slate-900">Proxy Profiles</h3>
-              <p className="text-sm text-slate-600 mt-1">
+              <h3 className="text-base font-medium text-slate-900">Proxy Profiles</h3>
+              <p className="text-xs text-slate-500 mt-0.5">
                 {profiles.length} profile{profiles.length !== 1 ? 's' : ''} • {profiles.filter(p => p.status === 'running').length} active
               </p>
             </div>
@@ -270,85 +253,83 @@ const ProfileTable: React.FC<ProfileTableProps> = ({
       
         {/* Mobile Card View */}
         <div className="block lg:hidden">
-          <div className="p-4 space-y-4">
+          <div className="p-3 space-y-3">
             {profiles.map((profile) => (
               <div 
                 key={profile.id}
-                className={`bg-white border rounded-lg p-4 space-y-3 ${
-                  selectedProfiles.has(profile.id) ? 'border-blue-500 bg-blue-50' : 'border-slate-200'
+                className={`bg-white border rounded p-3 space-y-2 ${
+                  selectedProfiles.has(profile.id) ? 'border-slate-400 bg-slate-50' : 'border-slate-200'
                 }`}
               >
                 {/* Card Header */}
                 <div className="flex items-start justify-between">
-                  <div className="flex items-center space-x-3">
+                  <div className="flex items-center space-x-2">
                     <input
                       type="checkbox"
                       checked={selectedProfiles.has(profile.id)}
                       onChange={() => handleSelectProfile(profile.id)}
-                      className="w-4 h-4 text-slate-800 bg-white border-slate-300 rounded focus:ring-slate-500 focus:ring-2"
+                      className="w-3 h-3 text-slate-600 bg-white border-slate-300 rounded focus:ring-slate-500 focus:ring-1"
                     />
                     <div className="flex items-center space-x-2">
-                      <div className="w-8 h-8 bg-gradient-to-br from-slate-100 to-slate-200 rounded-lg flex items-center justify-center">
-                        <svg className="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <div className="w-6 h-6 bg-slate-100 rounded flex items-center justify-center">
+                        <svg className="w-3 h-3 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                         </svg>
                       </div>
                       <div>
-                        <div className="text-sm font-semibold text-slate-900">{profile.name}</div>
-                        <div className="text-xs text-slate-500">Profile #{profile.id.toString().padStart(3, '0')}</div>
+                        <div className="text-sm font-medium text-slate-900">{profile.name}</div>
+                        <div className="text-xs text-slate-500">#{profile.id.toString().padStart(3, '0')}</div>
                       </div>
                     </div>
                   </div>
-                  <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${getStatusColor(profile.status)}`}>
-                    <span className="mr-1.5">{getStatusIcon(profile.status)}</span>
+                  <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border ${getStatusColor(profile.status)}`}>
+                    <span className="mr-1">{getStatusIcon(profile.status)}</span>
                     {profile.status === 'running' ? 'Active' : 'Inactive'}
                   </span>
                 </div>
 
                 {/* Card Content */}
-                <div className="space-y-3">
+                <div className="space-y-2">
                   {/* Type */}
                   <div className="flex items-center space-x-2">
-                    <span className="text-xs font-medium text-slate-600">Type:</span>
-                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getModeColor(profile.type)}`}>
+                    <span className="text-xs text-slate-500">Type:</span>
+                    <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium border ${getModeColor(profile.type)}`}>
                       {getModeLabel(profile.type)}
                     </span>
                   </div>
 
                   {/* Connection */}
-                  <div className="space-y-2">
-                    <div className="text-xs font-medium text-slate-600">Connection:</div>
-                    <div className="space-y-1">
-                      <div className="flex items-center space-x-2 text-sm">
-                        <span className="font-mono text-slate-900 bg-slate-100 px-2 py-1 rounded text-xs flex-1 text-center">
-                          {formatAddress(profile.listen)}
-                        </span>
-                        <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                        </svg>
-                        <span className="font-mono text-slate-900 bg-slate-100 px-2 py-1 rounded text-xs flex-1 text-center">
-                          {formatAddress(profile.remote)}
-                        </span>
-                      </div>
-                      {profile.username && (
-                        <div className="text-xs text-slate-500 flex items-center space-x-1">
-                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                          </svg>
-                          <span>Auth: {profile.username}•••</span>
-                        </div>
-                      )}
+                  <div className="space-y-1">
+                    <div className="text-xs text-slate-500">Connection:</div>
+                    <div className="flex items-center space-x-1 text-xs">
+                      <span className="font-mono text-slate-700 bg-slate-100 px-1.5 py-0.5 rounded flex-1 text-center">
+                        {formatAddress(profile.listen)}
+                      </span>
+                      <svg className="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                      </svg>
+                      <span className="font-mono text-slate-700 bg-slate-100 px-1.5 py-0.5 rounded flex-1 text-center">
+                        {formatAddress(profile.remote)}
+                      </span>
                     </div>
+                    {profile.username && (
+                      <div className="text-xs text-slate-500 flex items-center space-x-1">
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                        <span>Auth: {profile.username}•••</span>
+                      </div>
+                    )}
                   </div>
 
                   {/* Actions */}
-                  <div className="flex items-center space-x-2 pt-2">
+                  <div className="flex items-center space-x-2 pt-1">
                     <button
                       onClick={() => onToggle(profile.id, profile.status !== 'running')}
-                      className={`flex-1 px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 shadow-sm hover:shadow-md ${
+                      className={`flex-1 px-2 py-1.5 rounded text-xs font-medium transition-colors ${
                         profile.status === 'running'
-                          ? 'bg-red-500 hover:bg-red-600 text-white'
-                          : 'bg-emerald-500 hover:bg-emerald-600 text-white'
+                          ? 'bg-slate-100 hover:bg-red-200 text-slate-700 hover:text-red-700'
+                          : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
                       }`}
                       title={profile.status === 'running' ? 'Stop proxy' : 'Start proxy'}
                     >
@@ -357,10 +338,10 @@ const ProfileTable: React.FC<ProfileTableProps> = ({
                     
                     <button
                       onClick={() => onEdit(profile)}
-                      className="p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-md transition-all duration-150"
+                      className="p-1.5 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded transition-colors"
                       title="Edit profile"
                     >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                       </svg>
                     </button>
@@ -371,10 +352,10 @@ const ProfileTable: React.FC<ProfileTableProps> = ({
                           onDelete(profile.id);
                         }
                       }}
-                      className="p-2 text-red-600 hover:text-red-900 hover:bg-red-50 rounded-md transition-all duration-150"
+                      className="p-1.5 text-slate-500 hover:text-red-700 hover:bg-red-50 rounded transition-colors"
                       title="Delete profile"
                     >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                       </svg>
                     </button>

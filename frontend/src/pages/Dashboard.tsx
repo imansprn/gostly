@@ -61,6 +61,8 @@ const Dashboard: React.FC = () => {
   useEffect(() => {
     checkGostStatus(); // Check immediately on mount
     checkGostAvailability(); // Check GOST availability
+    fetchProfiles(); // Fetch profiles on mount
+    fetchActivityLogs(); // Fetch activity logs on mount
     
     const interval = setInterval(() => {
       checkGostStatus();

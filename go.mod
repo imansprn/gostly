@@ -1,4 +1,4 @@
-module github.com/gobliggg/gostly
+module github.com/imansprn/gostly
 
 go 1.23
 
@@ -35,4 +35,4 @@ require (
 	golang.org/x/text v0.22.0 // indirect
 )
 
-// replace github.com/wailsapp/wails/v2 v2.10.2 => /Users/gobliggg/.gvm/pkgsets/go1.23.4/global/pkg/mod
+// replace github.com/wailsapp/wails/v2 v2.10.2 => /Users/imansprn/.gvm/pkgsets/go1.23.4/global/pkg/mod

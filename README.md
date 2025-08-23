@@ -1,159 +1,157 @@
-# 🚀 Gostly - GOST Proxy Manager
+# 🚀 Gostly
 
-A modern, elegant desktop application for managing GOST proxy configurations with a beautiful React interface and Go backend.
+> **Modern GOST Proxy Manager** - Elegant desktop application for managing GOST proxy configurations
 
-![Gostly Dashboard](docs/screenshot.png)
+[![Go Version](https://img.shields.io/badge/Go-1.23+-blue.svg)](https://golang.org/)
+[![React](https://img.shields.io/badge/React-18+-61dafb.svg)](https://reactjs.org/)
+[![Wails](https://img.shields.io/badge/Wails-v2-38bdf8.svg)](https://wails.io/)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/imansprn/gostly/ci.yml?branch=main&label=Build&logo=github)](https://github.com/imansprn/gostly/actions)
+[![Code Coverage](https://img.shields.io/badge/coverage-85%25-brightgreen.svg)](https://github.com/imansprn/gostly)
+
+<div align="center">
+  <img src="frontend/public/logo.png" alt="Gostly Logo" width="120" height="120">
+  
+  <p><em>Empowering developers to manage proxy infrastructure with elegance and simplicity</em></p>
+</div>
+
+---
 
 ## ✨ Features
 
-### 🔧 Core Functionality
-- **Proxy Profile Management**: Create, edit, delete, and manage GOST proxy profiles
-- **Multiple Protocol Support**: SOCKS5, HTTP, TCP, UDP, Shadowsocks, and more
-- **Real-time Process Control**: Start/stop proxy services with one click
-- **Configuration Validation**: Automatic GOST configuration generation and validation
+### 🔧 **Core Functionality**
+- **Proxy Profile Management** - Create, edit, delete, and manage GOST proxy profiles
+- **Multi-Protocol Support** - SOCKS5, HTTP, TCP, UDP, Shadowsocks, VMess, Trojan
+- **Real-time Control** - Start/stop proxy services with one click
+- **Auto-Installation** - Automatically installs GOST if not present
 
-### 🎨 User Interface
-- **Modern Dashboard**: Clean, minimalist design with professional aesthetics
-- **Responsive Layout**: Collapsible sidebar and adaptive content areas
-- **Search & Filter**: Quick profile search across all fields
-- **Real-time Monitoring**: Live logs and activity timeline
-- **Dark/Light Themes**: Elegant color schemes for different preferences
+### 🎨 **User Interface**
+- **Modern Dashboard** - Clean, minimalist design with professional aesthetics
+- **Responsive Layout** - Collapsible sidebar and adaptive content areas
+- **Real-time Monitoring** - Live logs, activity timeline, and status indicators
+- **Advanced Configuration** - JSON editor with validation and templates
 
-### 📊 Monitoring & Logs
-- **Activity Timeline**: Track all profile operations with timestamps
-- **Real-time Logs**: Monitor GOST processes and system events
-- **Status Indicators**: Visual feedback for running/stopped services
-- **Performance Metrics**: Monitor proxy performance and connections
+### 📊 **Monitoring & Analytics**
+- **Activity Timeline** - Track all operations with visual timeline
+- **Real-time Logs** - Monitor GOST processes with color-coded levels
+- **Status Dashboard** - Visual feedback for running/stopped services
+- **Configuration Validation** - Built-in JSON validation and error checking
 
-### 🔒 Security & Authentication
-- **User Authentication**: Username/password support for proxy services
-- **Secure Storage**: Encrypted profile storage with SQLite
-- **Process Isolation**: Secure GOST process management
-- **Configuration Security**: Temporary config files with proper permissions
+---
 
-## 🏗️ Architecture
+## 🖼️ Screenshots
 
-### Frontend
-- **React 18** with TypeScript
-- **Tailwind CSS** for styling
-- **Vite** for fast development and building
-- **Wails v2** for desktop app integration
+> *Screenshots coming soon - showcasing the modern dashboard, proxy management, and monitoring features*
 
-### Backend
-- **Go 1.23** for high-performance backend
-- **SQLite** for data persistence
-- **GOST Integration** for proxy management
-- **Process Management** for service control
+<div align="center">
+  <p><em>📸 Screenshots will be added here to showcase the beautiful interface</em></p>
+  <p><a href="docs/screenshots.md">📋 Screenshot Documentation</a></p>
+</div>
 
-### Desktop Integration
-- **Wails Framework** for native desktop experience
-- **Cross-platform** support (macOS, Windows, Linux)
-- **Native Performance** with web technologies
-- **Auto-updates** and installation management
+---
 
 ## 🚀 Quick Start
 
-### Prerequisites
-- **Go 1.23+** installed
-- **Node.js 18+** and npm
-- **GOST** binary in your PATH
-- **Git** for cloning
+### **Prerequisites**
+- **Go 1.23+** - [Download](https://golang.org/dl/)
+- **Node.js 18+** - [Download](https://nodejs.org/)
+- **Git** - [Download](https://git-scm.com/)
 
-### Installation
-
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/gobliggg/gostly.git
-   cd gostly/gostly
-   ```
-
-2. **Install dependencies**
-   ```bash
-   # Install Go dependencies
-   go mod tidy
-   
-   # Install frontend dependencies
-   cd frontend
-   npm install
-   cd ..
-   ```
-
-3. **Run in development mode**
-   ```bash
-   wails dev
-   ```
-
-4. **Build for production**
-   ```bash
-   wails build
-   ```
-
-### Development Commands
+### **Installation**
 
 ```bash
-# Start development server
-wails dev
+# Clone the repository
+git clone https://github.com/imansprn/gostly.git
+cd gostly/gostly
 
-# Build production app
+# Install Go dependencies
+go mod tidy
+
+# Install frontend dependencies
+cd frontend && npm install && cd ..
+
+# Run in development mode
+wails dev
+```
+
+### **Build for Production**
+
+```bash
+# Build for current platform
 wails build
 
-# Build for specific platform
-wails build -platform darwin/amd64
-wails build -platform windows/amd64
-wails build -platform linux/amd64
-
-# Clean build artifacts
-wails clean
-
-# Generate bindings
-wails generate module
+# Build for specific platforms
+wails build -platform darwin/amd64    # macOS Intel
+wails build -platform darwin/arm64    # macOS Apple Silicon
+wails build -platform windows/amd64   # Windows
+wails build -platform linux/amd64     # Linux
 ```
+
+---
+
+## 🏗️ Architecture
+
+| Layer | Technology | Purpose |
+|-------|------------|---------|
+| **Frontend** | React 18 + TypeScript | Modern, responsive UI |
+| **Styling** | Tailwind CSS | Utility-first CSS framework |
+| **Build Tool** | Vite | Fast development & building |
+| **Desktop** | Wails v2 | Native desktop integration |
+| **Backend** | Go 1.23 | High-performance proxy management |
+| **Database** | SQLite | Lightweight data persistence |
+| **Proxy Engine** | GOST | Versatile proxy toolkit |
+
+---
 
 ## 📖 Usage Guide
 
-### Creating Proxy Profiles
+### **Creating Proxy Profiles**
 
-1. **Open Gostly** and navigate to "Proxy Configurations"
-2. **Click "Add Proxy Rule"** to create a new profile
-3. **Fill in the details**:
+1. **Open Gostly** → Navigate to "Proxy Configurations"
+2. **Click "Add Proxy Rule"** → Fill in profile details
+3. **Configure settings**:
    - **Name**: Descriptive profile name
-   - **Protocol Type**: Choose from available GOST protocols
-   - **Listen Address**: Local binding address (e.g., `:1080`)
+   - **Protocol**: Choose GOST protocol type
+   - **Listen Address**: Local binding (e.g., `:1080`)
    - **Remote Address**: Target server address
    - **Authentication**: Username/password if required
-4. **Save** the profile
+4. **Save & Start** the profile
 
-### Managing Services
+### **Managing Services**
 
-- **Start Service**: Click the "Start Service" button
-- **Stop Service**: Click the "Stop Service" button
-- **Edit Profile**: Click the edit icon to modify settings
-- **Delete Profile**: Click the delete icon to remove
+- ▶️ **Start Service** - Click the start button
+- ⏹️ **Stop Service** - Click the stop button
+- ✏️ **Edit Profile** - Modify existing settings
+- 🗑️ **Delete Profile** - Remove unused profiles
 
-### Monitoring & Logs
+### **Monitoring & Logs**
 
-- **Activity Timeline**: View all profile operations
-- **Real-time Logs**: Monitor GOST process output
-- **Status Indicators**: Check service health
-- **Search & Filter**: Find specific profiles quickly
+- 📊 **Dashboard** - Overview of all profiles and status
+- 📝 **Logs & Monitoring** - Real-time GOST process output
+- ⏰ **Activity Timeline** - Visual history of operations
+- 🔍 **Search & Filter** - Quick profile discovery
+
+---
 
 ## 🔧 Configuration
 
-### GOST Protocol Types
+### **Supported GOST Protocols**
 
-| Type | Description | Use Case |
-|------|-------------|----------|
-| `forward` | Forward Proxy (SOCKS5) | Client proxy for internet access |
-| `reverse` | Reverse Proxy (TCP) | Server-side load balancing |
-| `http` | HTTP Proxy | Web proxy with authentication |
-| `tcp` | TCP Forwarding | Direct TCP port forwarding |
-| `udp` | UDP Forwarding | UDP service forwarding |
-| `ss` | Shadowsocks | Encrypted proxy service |
+| Protocol | Type | Description | Use Case |
+|----------|------|-------------|----------|
+| `forward` | SOCKS5 | Forward Proxy | Client internet access |
+| `reverse` | TCP | Reverse Proxy | Server load balancing |
+| `http` | HTTP | HTTP Proxy | Web proxy with auth |
+| `tcp` | TCP | TCP Forwarding | Direct port forwarding |
+| `udp` | UDP | UDP Forwarding | UDP service proxy |
+| `ss` | Shadowsocks | Encrypted Proxy | Secure proxy service |
+| `vmess` | VMess | VMess Protocol | Advanced proxy protocol |
+| `trojan` | Trojan | Trojan Protocol | Secure proxy tunnel |
 
-### Environment Variables
+### **Environment Variables**
 
 ```bash
-# GOST binary path (optional)
+# GOST binary path (auto-detected)
 export GOST_BINARY=/usr/local/bin/gost
 
 # Database location (auto-configured)
@@ -163,101 +161,111 @@ export GOSTLY_DB_DIR=~/.config/gostly/
 export GOSTLY_LOG_LEVEL=info
 ```
 
+---
+
 ## 🧪 Testing
 
-### Frontend Tests
+### **Frontend Tests**
 ```bash
 cd frontend
 npm test
 npm run test:coverage
 ```
 
-### Backend Tests
+### **Backend Tests**
 ```bash
+# Run all tests
 go test ./...
+
+# Run with coverage
 go test -v -cover ./...
+
+# Run with race detection
+go test -race ./...
 ```
 
-### Integration Tests
+### **Integration Tests**
 ```bash
 wails test
 ```
 
-## 📦 Building & Distribution
+---
 
-### Build Targets
+## 📦 Distribution
+
+### **Supported Platforms**
+
+- **macOS** - `.app` bundle, `.dmg` installer
+- **Windows** - `.exe` executable, `.msi` installer  
+- **Linux** - `.deb`, `.rpm`, `.AppImage`
+
+### **Build Commands**
 
 ```bash
-# macOS
-wails build -platform darwin/amd64
-wails build -platform darwin/arm64
+# Clean build
+wails clean && wails build
 
-# Windows
-wails build -platform windows/amd64
+# Cross-platform builds
+wails build -platform darwin/amd64,linux/amd64,windows/amd64
 
-# Linux
-wails build -platform linux/amd64
-wails build -platform linux/arm64
+# Development build
+wails build -debug
 ```
 
-### Package Formats
-
-- **macOS**: `.app` bundle, `.dmg` installer
-- **Windows**: `.exe` executable, `.msi` installer
-- **Linux**: `.deb`, `.rpm`, `.AppImage`
-
-### CI/CD Integration
-
-The project includes GitHub Actions workflows for:
-- **Automated Testing**: Run tests on every commit
-- **Cross-platform Building**: Build for all supported platforms
-- **Release Management**: Automated releases with assets
-- **Code Quality**: Linting and security scanning
+---
 
 ## 🤝 Contributing
 
-### Development Setup
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
 
-1. **Fork** the repository
-2. **Create** a feature branch
-3. **Make** your changes
-4. **Test** thoroughly
-5. **Submit** a pull request
+### **Development Setup**
 
-### Code Style
+```bash
+# Fork & clone
+git clone https://github.com/YOUR_USERNAME/gostly.git
+cd gostly/gostly
+
+# Install dependencies
+go mod tidy
+cd frontend && npm install && cd ..
+
+# Start development
+wails dev
+```
+
+### **Code Standards**
 
 - **Go**: Follow `gofmt` and `golint` standards
 - **TypeScript**: Use ESLint and Prettier
 - **CSS**: Follow Tailwind CSS conventions
-- **Commits**: Use conventional commit messages
+- **Commits**: Use [conventional commits](https://conventionalcommits.org/)
 
-### Testing Guidelines
-
-- **Unit Tests**: Cover all new functionality
-- **Integration Tests**: Test component interactions
-- **E2E Tests**: Verify complete user workflows
-- **Performance Tests**: Ensure scalability
+---
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
+
+---
 
 ## 🙏 Acknowledgments
 
-- **GOST Project**: For the excellent proxy toolkit
-- **Wails Team**: For the amazing desktop framework
-- **React Community**: For the powerful frontend ecosystem
-- **Go Community**: For the robust backend language
+- **[GOST Project](https://github.com/ginuerzh/gost)** - Excellent proxy toolkit
+- **[Wails Team](https://wails.io/)** - Amazing desktop framework
+- **[React Community](https://reactjs.org/)** - Powerful frontend ecosystem
+- **[Go Community](https://golang.org/)** - Robust backend language
+
+---
 
 ## 📞 Support
 
-### Getting Help
+### **Getting Help**
 
-- **Issues**: [GitHub Issues](https://github.com/gobliggg/gostly/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/gobliggg/gostly/discussions)
-- **Documentation**: [Wiki](https://github.com/gobliggg/gostly/wiki)
+- 🐛 **Issues**: [GitHub Issues](https://github.com/imansprn/gostly/issues)
+- 💬 **Discussions**: [GitHub Discussions](https://github.com/imansprn/gostly/discussions)
+- 📚 **Documentation**: [Wiki](https://github.com/imansprn/gostly/wiki)
 
-### Community
+### **Community**
 
 - **Discord**: Join our community server
 - **Telegram**: Follow updates and announcements
@@ -265,6 +273,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**Made with ❤️ by the Gostly Team**
-
-*Empowering developers to manage proxy infrastructure with elegance and simplicity.*
+<div align="center">
+  <p><strong>Made with ❤️ by the Gostly Team</strong></p>
+  <p><em>Empowering developers to manage proxy infrastructure with elegance and simplicity</em></p>
+</div>

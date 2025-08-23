@@ -12,7 +12,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gobliggg/gostly/pkg/database"
+	"github.com/imansprn/gostly/pkg/database"
 )
 
 // API handles the application's business logic

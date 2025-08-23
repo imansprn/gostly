@@ -3,6 +3,24 @@
     text-align: center;
 }
 
+/* Make the app draggable */
+#root {
+    -webkit-app-region: no-drag;
+}
+
+/* Ensure the top bar is draggable */
+.topbar-draggable {
+    -webkit-app-region: drag;
+}
+
+/* Ensure interactive elements are not draggable */
+.topbar-draggable button,
+.topbar-draggable input,
+.topbar-draggable select,
+.topbar-draggable a {
+    -webkit-app-region: no-drag;
+}
+
 #logo {
     display: block;
     width: 50%;

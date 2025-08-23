@@ -306,20 +306,20 @@ const AdvancedConfig: React.FC<AdvancedConfigProps> = ({
   return (
     <div className="bg-white rounded-lg border border-slate-200 p-6">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 className="text-lg font-medium text-slate-900">Advanced Configuration</h3>
-          <div className="flex items-center space-x-4 mt-2 text-sm text-slate-600">
-            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-              hasUnsavedChanges ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700'
+          <h3 className="text-base font-medium text-slate-900">Advanced Configuration</h3>
+          <div className="flex items-center space-x-3 mt-1 text-xs text-slate-500">
+            <span className={`px-2 py-1 rounded text-xs font-medium ${
+              hasUnsavedChanges ? 'bg-slate-200 text-slate-700' : 'bg-slate-100 text-slate-600'
             }`}>
-              {hasUnsavedChanges ? '⚠️ Unsaved Changes' : '✅ Saved'}
+              {hasUnsavedChanges ? 'Unsaved Changes' : 'Saved'}
             </span>
             {lastSaved && (
-              <span>Last saved: {lastSaved.toLocaleTimeString()}</span>
+              <span>Saved {lastSaved.toLocaleTimeString()}</span>
             )}
             {autoSaveEnabled && (
-              <span className="text-blue-600">🔄 Auto-save enabled</span>
+              <span className="text-slate-600">Auto-save enabled</span>
             )}
           </div>
         </div>
@@ -328,45 +328,45 @@ const AdvancedConfig: React.FC<AdvancedConfigProps> = ({
           {/* Auto-save Toggle */}
           <button
             onClick={() => setAutoSaveEnabled(!autoSaveEnabled)}
-            className={`px-3 py-2 text-sm rounded-md transition-colors duration-200 ${
+            className={`px-2 py-1.5 text-xs rounded transition-colors ${
               autoSaveEnabled 
-                ? 'bg-blue-100 text-blue-700 hover:bg-blue-200' 
-                : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                ? 'bg-slate-200 text-slate-700' 
+                : 'bg-slate-100 text-slate-600'
             }`}
           >
-            {autoSaveEnabled ? '🔄 Auto-save ON' : '⏸️ Auto-save OFF'}
+            {autoSaveEnabled ? 'Auto-save ON' : 'Auto-save OFF'}
           </button>
         </div>
       </div>
 
       {/* Action Buttons */}
-      <div className="flex items-center justify-between mb-4 p-3 bg-slate-50 rounded-lg">
+      <div className="flex items-center justify-between mb-4 p-2 bg-slate-50 rounded">
         <div className="flex items-center space-x-2">
           {/* Templates */}
           <div className="relative">
             <button
               onClick={() => setShowTemplates(!showTemplates)}
-              className="px-3 py-2 text-sm bg-purple-100 hover:bg-purple-200 text-purple-700 rounded-md transition-colors duration-200"
+              className="px-2 py-1.5 text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 rounded transition-colors"
             >
-              📋 Templates
+              Templates
             </button>
             
             {showTemplates && (
-              <div className="absolute top-full left-0 mt-1 w-80 bg-white border border-slate-200 rounded-lg shadow-lg z-10">
-                <div className="p-3 border-b border-slate-200">
-                  <h4 className="font-medium text-slate-900">Configuration Templates</h4>
-                  <p className="text-sm text-slate-600">Choose a template to get started</p>
+              <div className="absolute top-full left-0 mt-1 w-72 bg-white border border-slate-200 rounded shadow-lg z-10">
+                <div className="p-2 border-b border-slate-200">
+                  <h4 className="font-medium text-slate-900 text-sm">Configuration Templates</h4>
+                  <p className="text-xs text-slate-600">Choose a template to get started</p>
                 </div>
-                <div className="max-h-64 overflow-y-auto">
+                <div className="max-h-56 overflow-y-auto">
                   {configTemplates.map((template) => (
                     <button
                       key={template.name}
                       onClick={() => handleTemplateSelect(template)}
-                      className="w-full p-3 text-left hover:bg-slate-50 border-b border-slate-100 last:border-b-0"
+                      className="w-full p-2 text-left hover:bg-slate-50 border-b border-slate-100 last:border-b-0"
                     >
-                      <div className="font-medium text-slate-900">{template.name}</div>
-                      <div className="text-sm text-slate-600">{template.description}</div>
-                      <div className="text-xs text-slate-500 mt-1">Type: {template.type}</div>
+                      <div className="font-medium text-slate-900 text-sm">{template.name}</div>
+                      <div className="text-xs text-slate-600">{template.description}</div>
+                      <div className="text-xs text-slate-500 mt-0.5">Type: {template.type}</div>
                     </button>
                   ))}
                 </div>
@@ -376,8 +376,8 @@ const AdvancedConfig: React.FC<AdvancedConfigProps> = ({
 
           {/* Import/Export */}
           <div className="flex items-center space-x-2">
-            <label className="px-3 py-2 text-sm bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-md transition-colors duration-200 cursor-pointer">
-              📁 Import
+            <label className="px-2 py-1.5 text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 rounded transition-colors cursor-pointer">
+              Import
               <input
                 type="file"
                 accept=".json,.txt"
@@ -388,9 +388,9 @@ const AdvancedConfig: React.FC<AdvancedConfigProps> = ({
             <button
               onClick={handleExportConfig}
               disabled={!configText.trim()}
-              className="px-3 py-2 text-sm bg-green-100 hover:bg-green-200 text-green-700 rounded-md transition-colors duration-200 disabled:opacity-50"
+              className="px-2 py-1.5 text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 rounded transition-colors disabled:opacity-50"
             >
-              📤 Export
+              Export
             </button>
           </div>
         </div>
@@ -400,39 +400,39 @@ const AdvancedConfig: React.FC<AdvancedConfigProps> = ({
           <button
             onClick={handleValidateConfig}
             disabled={isValidating || !configText.trim()}
-            className="px-3 py-2 text-sm bg-yellow-100 hover:bg-yellow-200 text-yellow-700 rounded-md transition-colors duration-200 disabled:opacity-50"
+            className="px-2 py-1.5 text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 rounded transition-colors disabled:opacity-50"
           >
             {isValidating ? (
-              <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+              <svg className="animate-spin h-3 w-3" fill="none" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
             ) : (
-              '🔍 Validate'
+              'Validate'
             )}
           </button>
 
           {/* Reset */}
           <button
             onClick={handleResetConfig}
-            className="px-3 py-2 text-sm bg-red-100 hover:bg-red-200 text-red-700 rounded-md transition-colors duration-200"
+            className="px-2 py-1.5 text-xs bg-slate-100 hover:bg-red-200 text-slate-600 hover:text-red-700 rounded transition-colors"
           >
-            🔄 Reset
+            Reset
           </button>
 
           {/* Save */}
           <button
             onClick={handleSaveConfig}
             disabled={isSaving || !hasUnsavedChanges}
-            className="px-3 py-2 text-sm bg-green-100 hover:bg-green-200 text-green-700 rounded-md transition-colors duration-200 disabled:opacity-50"
+            className="px-2 py-1.5 text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 rounded transition-colors disabled:opacity-50"
           >
             {isSaving ? (
-              <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+              <svg className="animate-spin h-3 w-3" fill="none" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
             ) : (
-              '💾 Save Changes'
+              'Save Changes'
             )}
           </button>
         </div>
@@ -440,23 +440,25 @@ const AdvancedConfig: React.FC<AdvancedConfigProps> = ({
 
       {/* Validation Errors */}
       {validationErrors.length > 0 && (
-        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-          <div className="flex items-center space-x-2 mb-2">
-            <span className="text-red-600">❌</span>
-            <span className="font-medium text-red-800">Configuration Validation Errors</span>
+        <div className="mb-4 p-2 bg-red-50 border border-red-200 rounded">
+          <div className="flex items-center space-x-2 mb-1">
+            <svg className="w-3 h-3 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+            <span className="font-medium text-red-800 text-xs">Validation Errors</span>
           </div>
-          <ul className="list-disc list-inside space-y-1">
+          <ul className="list-disc list-inside space-y-0.5">
             {validationErrors.map((error, index) => (
-              <li key={index} className="text-sm text-red-700">{error}</li>
+              <li key={index} className="text-xs text-red-700">{error}</li>
             ))}
           </ul>
         </div>
       )}
 
-      {/* Configuration Editor */}
-      <div className="relative">
+            {/* Configuration Editor */}
+      <div className="relative h-80">
         {/* Line Numbers */}
-        <div className="absolute left-0 top-0 bottom-0 w-12 bg-slate-100 border-r border-slate-200 rounded-l-lg font-mono text-xs text-slate-500 overflow-hidden">
+        <div className="absolute left-0 top-0 h-80 w-12 bg-slate-100 border-r border-slate-200 rounded-l font-mono text-xs text-slate-500 overflow-hidden">
           {lineNumbers.map((num) => (
             <div key={num} className="px-2 py-0.5 text-right">
               {num}
@@ -471,22 +473,26 @@ const AdvancedConfig: React.FC<AdvancedConfigProps> = ({
           onChange={handleTextareaChange}
           onKeyDown={handleKeyDown}
           placeholder="Enter your GOST configuration in JSON format..."
-          className="w-full h-96 pl-14 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg font-mono text-sm text-slate-700 resize-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none"
-          />
+          className="w-full h-80 pl-14 pr-3 py-2 bg-slate-50 border border-slate-200 rounded font-mono text-xs text-slate-700 resize-none focus:border-slate-300 focus:outline-none"
+        />
       </div>
 
       {/* Footer Info */}
-      <div className="mt-4 text-xs text-slate-500 text-center">
-        <span>💡 Use Ctrl+S (Cmd+S on Mac) to save • JSON format required • Validate before saving</span>
+      <div className="mt-3 text-xs text-slate-400 text-center">
+        <span>Ctrl+S to save • JSON format • Validate before saving</span>
         {selectedTemplate && (
-          <span className="ml-4 text-blue-600">📋 Using template: {selectedTemplate}</span>
+          <span className="ml-3 text-slate-600">
+            Template: {selectedTemplate}
+          </span>
         )}
       </div>
 
       {/* Help Section */}
-      <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-        <h4 className="font-medium text-blue-900 mb-2">💡 Configuration Help</h4>
-        <div className="text-sm text-blue-800 space-y-1">
+      <div className="mt-4 p-3 bg-slate-50 border border-slate-200 rounded">
+        <h4 className="font-medium text-slate-900 text-sm mb-2">
+          Configuration Help
+        </h4>
+        <div className="text-xs text-slate-700 space-y-0.5">
           <p>• <strong>servers</strong>: Array of proxy server configurations</p>
           <p>• <strong>addr</strong>: Server address and port (e.g., ":8080")</p>
           <p>• <strong>handler</strong>: Proxy protocol handler configuration</p>

@@ -7,7 +7,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"runtime"
 	"strings"
 	"sync"
 	"time"
@@ -52,7 +51,7 @@ func New() (*API, error) {
 	}
 
 	// Check GOST availability and try to install if needed
-	api.checkAndInstallGost()
+	api.checkGostAvailability()
 
 	// Add initial system log
 	api.addLog("INFO", "system", "Gostly API initialized successfully", nil, "")
@@ -60,8 +59,8 @@ func New() (*API, error) {
 	return api, nil
 }
 
-// checkAndInstallGost checks if GOST is available and tries to install it if missing
-func (a *API) checkAndInstallGost() {
+// checkGostAvailability checks if GOST is available (no installation)
+func (a *API) checkGostAvailability() {
 	// Check if GOST is available
 	if a.isGostAvailable() {
 		a.gostAvailable = true
@@ -70,21 +69,10 @@ func (a *API) checkAndInstallGost() {
 			a.gostVersion = version
 		}
 		a.addLog("INFO", "system", fmt.Sprintf("GOST detected: %s", version), nil, "")
-		return
-	}
-
-	// Try to install GOST
-	a.addLog("INFO", "system", "GOST not found, attempting to install...", nil, "")
-	if a.installGost() {
-		a.gostAvailable = true
-		version, err := a.getGostVersion()
-		if err == nil {
-			a.gostVersion = version
-		}
-		a.addLog("INFO", "system", fmt.Sprintf("GOST installed successfully: %s", a.gostVersion), nil, "")
 	} else {
 		a.gostAvailable = false
-		a.addLog("WARN", "system", "GOST installation failed, running in fallback mode", nil, "")
+		a.addLog("INFO", "system", "GOST not found - manual installation required", nil, "")
+		a.addLog("INFO", "system", "To install GOST: brew install gost (macOS) or download from GitHub releases", nil, "")
 	}
 }
 
@@ -234,79 +222,6 @@ func (a *API) getGostVersion() (string, error) {
 	}
 
 	return "", fmt.Errorf("GOST not found in any common location")
-}
-
-// installGost attempts to install GOST using the appropriate package manager
-func (a *API) installGost() bool {
-	switch runtime.GOOS {
-	case "darwin":
-		return a.installGostOnMac()
-	case "linux":
-		return a.installGostOnLinux()
-	case "windows":
-		return a.installGostOnWindows()
-	default:
-		return false
-	}
-}
-
-// installGostOnMac installs GOST on macOS using Homebrew
-func (a *API) installGostOnMac() bool {
-	// Check if Homebrew is available
-	if _, err := exec.LookPath("brew"); err != nil {
-		a.addLog("WARN", "system", "Homebrew not found, cannot install GOST automatically", nil, "")
-		return false
-	}
-
-	// Try to install GOST using Homebrew
-	cmd := exec.Command("brew", "install", "gost")
-	if err := cmd.Run(); err != nil {
-		a.addLog("ERROR", "system", fmt.Sprintf("Failed to install GOST via Homebrew: %v", err), nil, "")
-		return false
-	}
-
-	return true
-}
-
-// installGostOnLinux installs GOST on Linux
-func (a *API) installGostOnLinux() bool {
-	// Try different package managers
-	packageManagers := []string{"apt", "yum", "dnf", "pacman"}
-
-	for _, pm := range packageManagers {
-		if _, err := exec.LookPath(pm); err == nil {
-			switch pm {
-			case "apt":
-				cmd := exec.Command("sudo", "apt", "update")
-				cmd.Run() // Ignore errors for update
-				cmd = exec.Command("sudo", "apt", "install", "-y", "gost")
-				if err := cmd.Run(); err == nil {
-					return true
-				}
-			case "yum", "dnf":
-				cmd := exec.Command("sudo", pm, "install", "-y", "gost")
-				if err := cmd.Run(); err == nil {
-					return true
-				}
-			case "pacman":
-				cmd := exec.Command("sudo", "pacman", "-S", "--noconfirm", "gost")
-				if err := cmd.Run(); err == nil {
-					return true
-				}
-			}
-		}
-	}
-
-	a.addLog("ERROR", "system", "No supported package manager found for GOST installation", nil, "")
-	return false
-}
-
-// installGostOnWindows installs GOST on Windows
-func (a *API) installGostOnWindows() bool {
-	// On Windows, we'll try to download and install GOST manually
-	// This is more complex and would require downloading from GitHub releases
-	a.addLog("WARN", "system", "Automatic GOST installation on Windows not yet implemented", nil, "")
-	return false
 }
 
 // IsGostAvailable returns whether GOST is available

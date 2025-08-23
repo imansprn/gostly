@@ -81,6 +81,7 @@
 - **Go 1.23+** - [Download](https://golang.org/dl/)
 - **Node.js 18+** - [Download](https://nodejs.org/)
 - **Git** - [Download](https://git-scm.com/)
+- **GOST 3.0+** - [Download](https://github.com/go-gost/gost/releases) *(Minimum version required)*
 
 ### **Installation**
 

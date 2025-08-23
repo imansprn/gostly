@@ -6,8 +6,9 @@
 [![React](https://img.shields.io/badge/React-18+-61dafb.svg)](https://reactjs.org/)
 [![Wails](https://img.shields.io/badge/Wails-v2-38bdf8.svg)](https://wails.io/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Build Status](https://img.shields.io/github/actions/workflow/status/imansprn/gostly/ci.yml?branch=main&label=Build&logo=github)](https://github.com/imansprn/gostly/actions)
-[![Code Coverage](https://img.shields.io/badge/coverage-85%25-brightgreen.svg)](https://github.com/imansprn/gostly)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/imansprn/gostly/main.yml?branch=main&label=CI/CD&logo=github)](https://github.com/imansprn/gostly/actions/workflows/main.yml)
+[![Code Coverage](https://codecov.io/gh/imansprn/gostly/branch/main/graph/badge.svg)](https://codecov.io/gh/imansprn/gostly)
+[![Go Report Card](https://goreportcard.com/badge/github.com/imansprn/gostly)](https://goreportcard.com/report/github.com/imansprn/gostly)
 
 <div align="center">
   <img src="frontend/public/logo.png" alt="Gostly Logo" width="120" height="120">
@@ -64,8 +65,8 @@
 
 ### 🔗 **Screenshot Documentation**
 - 📖 [Detailed Screenshot Guide](docs/screenshots.md)
-- 🎨 [UI Component Gallery](docs/ui-gallery.md)
-- 📱 [Feature Walkthrough](docs/features.md)
+- 🤝 [Contributing Guide](CONTRIBUTING.md)
+- 📝 [Development Setup](#-contributing)
 
 ### 📸 **Screenshot Gallery**
 <div align="center">
@@ -111,10 +112,46 @@ wails build -platform windows/amd64   # Windows
 wails build -platform linux/amd64     # Linux
 ```
 
+### **Creating Releases**
+
+**🚀 Automated Release Process (Release Please):**
+1. **Conventional Commits** - Write commits following [Conventional Commits](https://www.conventionalcommits.org/) format:
+   ```bash
+   feat: add new proxy protocol support
+   fix: resolve connection timeout issue
+   docs: update installation guide
+   ```
+
+2. **Automatic Release Creation**:
+   - Release Please automatically detects changes using built-in Go strategy
+   - Creates release pull requests with proper versioning
+   - Generates changelog from commit messages
+   - Creates GitHub releases with all platform artifacts
+
+3. **Manual Release** (if needed):
+   - Go to Actions → Release Please → Run workflow
+   - Fill in version details and run
+
+**What happens automatically:**
+- ✅ Downloads build artifacts from main CI/CD pipeline
+- 📦 Creates platform-specific packages (.tar.gz)
+- 🚀 Uploads to GitHub Releases
+- 🌐 Creates GitHub release with download links
+- 📝 Generates changelog from conventional commits
+- 🏷️ Tags and versions based on commit types
+
+**Commit Types for Version Bumping:**
+- `feat:` - Minor version bump (new features)
+- `fix:` - Patch version bump (bug fixes)
+- `BREAKING CHANGE:` - Major version bump (breaking changes)
+
+For detailed release instructions, see [CONTRIBUTING.md](CONTRIBUTING.md#-release-process) and [Release Please Guide](docs/RELEASE_PLEASE_GUIDE.md).
+
 ---
 
 ## 🏗️ Architecture
 
+### **Application Stack**
 | Layer | Technology | Purpose |
 |-------|------------|---------|
 | **Frontend** | React 18 + TypeScript | Modern, responsive UI |
@@ -124,6 +161,18 @@ wails build -platform linux/amd64     # Linux
 | **Backend** | Go 1.23 | High-performance proxy management |
 | **Database** | SQLite | Lightweight data persistence |
 | **Proxy Engine** | GOST | Versatile proxy toolkit |
+
+### **CI/CD Pipeline**
+| Workflow | Purpose | Triggers |
+|----------|---------|----------|
+| **main.yml** | Testing, building, security | Push, PR |
+| **release.yml** | Release Please automation | Push to main, manual |
+| **dependencies.yml** | Dependency updates | Weekly, manual |
+
+### **Release Management**
+- **Release Please** - Automated releases based on conventional commits
+- **GitHub Releases** - Artifact distribution and storage
+- **Conventional Commits** - Automatic versioning and changelog generation
 
 ---
 
@@ -187,30 +236,45 @@ export GOSTLY_LOG_LEVEL=info
 
 ---
 
-## 🧪 Testing
+## 🧪 Testing & CI/CD
 
-### **Frontend Tests**
+### **Automated Testing**
+Our consolidated CI/CD pipeline automatically runs:
+- ✅ **Code quality checks** (linting, formatting)
+- 🧪 **Go and frontend tests** with coverage reporting
+- 🛡️ **Security scanning** (vulnerability checks)
+- 🏗️ **Multi-platform builds** (Linux, macOS, Windows)
+
+**Triggers:**
+- Every push to `main` and `develop`
+- Every pull request
+- Manual workflow dispatch
+
+### **Local Testing**
+
+#### **Frontend Tests**
 ```bash
 cd frontend
-npm test
-npm run test:coverage
+npm test                    # Run tests
+npm run type-check         # TypeScript validation
 ```
 
-### **Backend Tests**
+#### **Backend Tests**
 ```bash
 # Run all tests
 go test ./...
 
 # Run with coverage
-go test -v -cover ./...
+go test -v -race -coverprofile=coverage.out ./...
 
-# Run with race detection
-go test -race ./...
+# View coverage
+go tool cover -html=coverage.out
 ```
 
-### **Integration Tests**
+#### **Full Build Test**
 ```bash
-wails test
+# Test complete build process
+wails build -debug
 ```
 
 ---

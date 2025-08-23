@@ -152,8 +152,8 @@ screenshots/
 ## 🔗 Related Documentation
 
 - 📖 [Main README](../README.md)
-- 🎨 [UI Component Gallery](ui-gallery.md)
-- 📱 [Feature Walkthrough](features.md)
+- 🤝 [Contributing Guide](../CONTRIBUTING.md)
+- 📝 [Changelog](../CHANGELOG.md)
 - 🚀 [Quick Start Guide](../README.md#quick-start)
 
 ---

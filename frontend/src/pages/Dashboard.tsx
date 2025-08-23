@@ -6,6 +6,7 @@ import Sidebar from '../components/Sidebar';
 import LogsMonitor from '../components/LogsMonitor';
 import ActivityTimeline from '../components/ActivityTimeline';
 import AdvancedConfig from '../components/AdvancedConfig';
+import { mockProfiles, mockTimelineEvents, mockLogEntries } from '../config/mockData';
 
 const Dashboard: React.FC = () => {
   const [profiles, setProfiles] = useState<Profile[]>([]);
@@ -89,62 +90,7 @@ const Dashboard: React.FC = () => {
         setActivityLogs(Array.isArray(logs) ? logs : []);
       } else {
         // Mock data for browser development
-        setActivityLogs([
-          {
-            id: 1,
-            type: 'proxy_action',
-            profile_name: 'HTTP Proxy',
-            action: 'started',
-            details: 'Profile "HTTP Proxy" was started successfully',
-            timestamp: new Date(Date.now() - 2 * 60 * 1000).toISOString(), // 2 minutes ago
-            status: 'success'
-          },
-          {
-            id: 2,
-            type: 'proxy_action',
-            profile_name: 'Local SOCKS5',
-            action: 'created',
-            details: 'Profile "Local SOCKS5" was created successfully',
-            timestamp: new Date(Date.now() - 60 * 60 * 1000).toISOString(), // 1 hour ago
-            status: 'success'
-          },
-          {
-            id: 3,
-            type: 'configuration',
-            profile_name: 'HTTP Proxy',
-            action: 'updated',
-            details: 'Proxy configuration modified: changed port from 8080 to 8081',
-            timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
-            status: 'success'
-          },
-          {
-            id: 4,
-            type: 'system',
-            profile_name: '',
-            action: 'maintenance',
-            details: 'System maintenance completed: updated GOST engine to version 3.2.4',
-            timestamp: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(), // 6 hours ago
-            status: 'success'
-          },
-          {
-            id: 5,
-            type: 'error',
-            profile_name: 'HTTP Proxy',
-            action: 'connection_failed',
-            details: 'Failed to establish connection to upstream server 192.168.1.100:8080',
-            timestamp: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString(), // 8 hours ago
-            status: 'error'
-          },
-          {
-            id: 6,
-            type: 'proxy_action',
-            profile_name: 'Shadowsocks',
-            action: 'stopped',
-            details: 'Profile "Shadowsocks" was stopped due to configuration error',
-            timestamp: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(), // 12 hours ago
-            status: 'warning'
-          }
-        ]);
+        setActivityLogs(mockTimelineEvents);
       }
     } catch (err) {
       console.error('Failed to fetch activity logs:', err);
@@ -171,62 +117,7 @@ const Dashboard: React.FC = () => {
         setSystemLogs(Array.isArray(logs) ? logs : []);
       } else {
         // Mock data for browser development
-        setSystemLogs([
-          {
-            id: 1,
-            timestamp: new Date(Date.now() - 2 * 60 * 1000).toISOString(),
-            level: 'INFO',
-            source: 'system',
-            message: 'Gostly API initialized successfully',
-            profile_id: undefined,
-            profile_name: ''
-          },
-          {
-            id: 2,
-            timestamp: new Date(Date.now() - 1 * 60 * 1000).toISOString(),
-            level: 'INFO',
-            source: 'api',
-            message: 'Profile "HTTP Proxy" created successfully (ID: 2)',
-            profile_id: 2,
-            profile_name: 'HTTP Proxy'
-          },
-          {
-            id: 3,
-            timestamp: new Date(Date.now() - 30 * 1000).toISOString(),
-            level: 'INFO',
-            source: 'proxy',
-            message: 'HTTP Proxy started on :8080',
-            profile_id: 2,
-            profile_name: 'HTTP Proxy'
-          },
-          {
-            id: 4,
-            timestamp: new Date(Date.now() - 15 * 1000).toISOString(),
-            level: 'WARN',
-            source: 'proxy',
-            message: 'Connection timeout from 192.168.1.100:54321',
-            profile_id: 2,
-            profile_name: 'HTTP Proxy'
-          },
-          {
-            id: 5,
-            timestamp: new Date(Date.now() - 10 * 1000).toISOString(),
-            level: 'ERROR',
-            source: 'proxy',
-            message: 'Failed to establish connection to upstream server',
-            profile_id: 2,
-            profile_name: 'HTTP Proxy'
-          },
-          {
-            id: 6,
-            timestamp: new Date(Date.now() - 5 * 1000).toISOString(),
-            level: 'DEBUG',
-            source: 'system',
-            message: 'Memory usage: 45.2MB, CPU: 12.3%',
-            profile_id: undefined,
-            profile_name: ''
-          }
-        ]);
+        setSystemLogs(mockLogEntries);
       }
     } catch (err) {
       console.error('Failed to fetch system logs:', err);
@@ -245,28 +136,6 @@ const Dashboard: React.FC = () => {
         updateConnectionStatus(Array.isArray(data) ? data : []);
       } else {
         // Mock data for browser development
-        const mockProfiles = [
-          {
-            id: 1,
-            name: 'Local SOCKS5',
-            type: 'forward',
-            listen: ':1080',
-            remote: '127.0.0.1:1080',
-            username: '',
-            password: '',
-            status: 'stopped'
-          },
-          {
-            id: 2,
-            name: 'HTTP Proxy',
-            type: 'http',
-            listen: ':8080',
-            remote: 'example.com:80',
-            username: 'user',
-            password: 'pass',
-            status: 'running'
-          }
-        ];
         setProfiles(mockProfiles);
         updateConnectionStatus(mockProfiles);
       }

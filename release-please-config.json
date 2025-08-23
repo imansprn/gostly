@@ -1,0 +1,12 @@
+{
+  "packages": {
+    ".": {
+      "release-type": "go",
+      "package-name": "gostly",
+      "changelog-path": "CHANGELOG.md",
+      "version-file": "go.mod"
+    }
+  },
+  "release-type": "go",
+  "changelog-host": "https://github.com/imansprn/gostly"
+}

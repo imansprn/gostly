@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ConfigurationTemplate } from '../types';
+import { configTemplates } from '../config/templates';
 
 interface AdvancedConfigProps {
   currentConfig: string;
@@ -25,112 +26,7 @@ const AdvancedConfig: React.FC<AdvancedConfigProps> = ({
   const [lineNumbers, setLineNumbers] = useState<string[]>([]);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Configuration templates
-  const configTemplates: ConfigurationTemplate[] = [
-    {
-      name: 'HTTP Proxy',
-      description: 'Basic HTTP proxy configuration',
-      type: 'http',
-      config: `{
-  "servers": [
-    {
-      "addr": ":8080",
-      "handler": {
-        "type": "http"
-      },
-      "listener": {
-        "type": "tcp"
-      }
-    }
-  ]
-}`
-    },
-    {
-      name: 'SOCKS5 Proxy',
-      description: 'SOCKS5 proxy with authentication',
-      type: 'socks5',
-      config: `{
-  "servers": [
-    {
-      "addr": ":1080",
-      "handler": {
-        "type": "socks5",
-        "auth": {
-          "username": "user",
-          "password": "pass"
-        }
-      },
-      "listener": {
-        "type": "tcp"
-      }
-    }
-  ]
-}`
-    },
-    {
-      name: 'Shadowsocks',
-      description: 'Shadowsocks proxy configuration',
-      type: 'shadowsocks',
-      config: `{
-  "servers": [
-    {
-      "addr": ":8388",
-      "handler": {
-        "type": "ss",
-        "method": "aes-256-gcm",
-        "password": "your-password"
-      },
-      "listener": {
-        "type": "tcp"
-      }
-    }
-  ]
-}`
-    },
-    {
-      name: 'VMess',
-      description: 'VMess proxy configuration',
-      type: 'vmess',
-      config: `{
-  "servers": [
-    {
-      "addr": ":10086",
-      "handler": {
-        "type": "vmess",
-        "uuid": "your-uuid-here",
-        "security": "auto"
-      },
-      "listener": {
-        "type": "tcp"
-      }
-    }
-  ]
-}`
-    },
-    {
-      name: 'Trojan',
-      description: 'Trojan proxy configuration',
-      type: 'trojan',
-      config: `{
-  "servers": [
-    {
-      "addr": ":443",
-      "handler": {
-        "type": "trojan",
-        "password": "your-password"
-      },
-      "listener": {
-        "type": "tcp",
-        "tls": {
-          "cert": "/path/to/cert.pem",
-          "key": "/path/to/key.pem"
-        }
-      }
-    }
-  ]
-}`
-    }
-  ];
+  // Configuration templates moved to separate config file
 
   // Update line numbers when config changes
   useEffect(() => {

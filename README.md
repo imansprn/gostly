@@ -41,11 +41,35 @@
 
 ## 🖼️ Screenshots
 
-> *Screenshots coming soon - showcasing the modern dashboard, proxy management, and monitoring features*
+> *Beautiful screenshots showcasing the modern dashboard, proxy management, and monitoring features*
 
+### 📱 **Available Screenshots**
+
+#### 🏠 **Dashboard**
+- **Dashboard Overview** - Main application interface *(coming soon)*
+
+#### ⚙️ **Proxy Management**
+- **Proxy Management** - Profile creation and editing interface
+  ![Proxy Management](screenshots/proxy-management/proxy-management.png)
+
+#### 📊 **Monitoring & Logs**
+- **Activity Timeline** - Visual operation history with timeline view
+  ![Activity Timeline](screenshots/monitoring/activity-timeline.png)
+- **Logs Monitoring** - Real-time process output and monitoring
+  ![Logs Monitoring](screenshots/monitoring/logs-monitoring.png)
+
+#### 🔧 **Configuration**
+- **Advanced Configuration** - JSON editor with validation and templates
+  ![Advanced Configuration](screenshots/configuration/advanced-config.png)
+
+### 🔗 **Screenshot Documentation**
+- 📖 [Detailed Screenshot Guide](docs/screenshots.md)
+- 🎨 [UI Component Gallery](docs/ui-gallery.md)
+- 📱 [Feature Walkthrough](docs/features.md)
+
+### 📸 **Screenshot Gallery**
 <div align="center">
-  <p><em>📸 Screenshots will be added here to showcase the beautiful interface</em></p>
-  <p><a href="docs/screenshots.md">📋 Screenshot Documentation</a></p>
+  <p><em>🎉 Screenshots are now available! Click on any image to view in full size.</em></p>
 </div>
 
 ---

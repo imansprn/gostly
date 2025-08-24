@@ -878,15 +878,98 @@ jobs:
           echo "📦 Preparing release assets..."
           mkdir -p release-assets
           
-          # Copy all build artifacts to release-assets directory
+          # Copy all build artifacts to release-assets directory with proper naming
           if [ -d "artifacts" ]; then
-            echo "📁 Found artifacts directory, copying files..."
-            find artifacts -type f -executable -name "*gostly*" -exec cp {} release-assets/ \;
-            find artifacts -type f -name "*.app" -exec cp -r {} release-assets/ \;
-            find artifacts -type f -name "*.exe" -exec cp {} release-assets/ \;
+            echo "📁 Found artifacts directory, preparing assets..."
+            
+            # Process each artifact with proper naming
+            for artifact in artifacts/*; do
+              if [ -f "$artifact" ]; then
+                filename=$(basename "$artifact")
+                
+                # Extract OS and architecture from the filename (e.g., "gostly-ubuntu-latest-amd64")
+                if [[ "$filename" == *"gostly-"* ]]; then
+                  # Remove "gostly-" prefix and split by "-"
+                  name_part="${filename#gostly-}"
+                  
+                  if [[ "$name_part" == *"ubuntu-latest"* ]]; then
+                    platform="linux"
+                  elif [[ "$name_part" == *"macos-latest"* ]]; then
+                    platform="macos"
+                  elif [[ "$name_part" == *"windows-latest"* ]]; then
+                    platform="windows"
+                  else
+                    platform="unknown"
+                  fi
+                  
+                  if [[ "$name_part" == *"amd64"* ]]; then
+                    arch="amd64"
+                  elif [[ "$name_part" == *"arm64"* ]]; then
+                    arch="arm64"
+                  else
+                    arch="unknown"
+                  fi
+                  
+                  # Create properly named asset with appropriate extension
+                  if [ "$platform" != "unknown" ] && [ "$arch" != "unknown" ]; then
+                    if [ "$platform" == "windows" ]; then
+                      new_name="gostly-${platform}-${arch}.exe"
+                    elif [ "$platform" == "macos" ]; then
+                      new_name="gostly-${platform}-${arch}.dmg"
+                    else
+                      new_name="gostly-${platform}-${arch}"
+                    fi
+                    
+                    echo "📦 Preparing: $filename -> $new_name"
+                    cp "$artifact" "release-assets/$new_name"
+                  else
+                    # Fallback: copy with original name
+                    echo "📦 Copying: $filename (unknown platform/arch)"
+                    cp "$artifact" "release-assets/$filename"
+                  fi
+                else
+                  # Handle other files (like build-info.txt)
+                  echo "📦 Copying: $filename (non-executable)"
+                  cp "$artifact" "release-assets/$filename"
+                fi
+              fi
+            done
             
             echo "📁 Release assets prepared:"
             ls -la release-assets/
+            
+            # Create ZIP archives for better distribution
+            echo "📦 Creating ZIP archives..."
+            cd release-assets
+            
+            # Create ZIP for Linux AMD64
+            if [ -f "gostly-linux-amd64" ]; then
+              echo "📦 Creating gostly-linux-amd64.zip"
+              zip gostly-linux-amd64.zip gostly-linux-amd64
+            fi
+            
+            # Create ZIP for Linux ARM64
+            if [ -f "gostly-linux-arm64" ]; then
+              echo "📦 Creating gostly-linux-arm64.zip"
+              zip gostly-linux-arm64.zip gostly-linux-arm64
+            fi
+            
+            # Create ZIP for macOS AMD64
+            if [ -f "gostly-macos-amd64.dmg" ]; then
+              echo "📦 Creating gostly-macos-amd64.zip"
+              zip gostly-macos-amd64.zip gostly-macos-amd64.dmg
+            fi
+            
+            # Create ZIP for macOS ARM64
+            if [ -f "gostly-macos-arm64.dmg" ]; then
+              echo "📦 Creating gostly-macos-arm64.zip"
+              zip gostly-macos-arm64.zip gostly-macos-arm64.dmg
+            fi
+            
+            # Windows .exe files are already good as-is
+            echo "📁 Final release assets:"
+            ls -la
+            cd ..
           else
             echo "⚠️  No artifacts directory found"
           fi
@@ -948,7 +1031,7 @@ jobs:
           
           # Create release notes
           cat > release-notes.md << EOF
-          ## 🚀 Gostly Release $VERSION
+          ## 🚀 Release $VERSION
           
           ### 📋 What's New
           
@@ -988,14 +1071,13 @@ jobs:
           
           # Determine version to use
           VERSION="${{ steps.release_please.outputs.tag_name || steps.check_release.outputs.fallback_version || 'v1.0.0' }}"
-          RELEASE_NAME="Gostly Release $VERSION"
           
           echo "🏷️  Version: $VERSION"
-          echo "📝 Release Name: $RELEASE_NAME"
+          echo "📝 Release Title: $VERSION"
           
-          # Create release using GitHub CLI
+          # Create release using GitHub CLI with clean title
           gh release create "$VERSION" \
-            --title "$RELEASE_NAME" \
+            --title "$VERSION" \
             --notes-file release-notes.md \
             --latest
           

@@ -845,3 +845,206 @@ jobs:
           fi
           
           echo "🔒 Security audit completed"
+
+  # Automatic Release (only on main branch when all jobs pass)
+  release:
+    name: Create Release
+    needs: [test-and-quality, security, build]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Required for proper versioning
+
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Download all build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Prepare release assets
+        run: |
+          echo "📦 Preparing release assets..."
+          mkdir -p release-assets
+          
+          # Copy all build artifacts to release-assets directory
+          if [ -d "artifacts" ]; then
+            echo "📁 Found artifacts directory, copying files..."
+            find artifacts -type f -executable -name "*gostly*" -exec cp {} release-assets/ \;
+            find artifacts -type f -name "*.app" -exec cp -r {} release-assets/ \;
+            find artifacts -type f -name "*.exe" -exec cp {} release-assets/ \;
+            
+            echo "📁 Release assets prepared:"
+            ls -la release-assets/
+          else
+            echo "⚠️  No artifacts directory found"
+          fi
+
+      - name: Release Please
+        id: release_please
+        uses: googleapis/release-please-action@v4
+        with:
+          # Use a personal access token for release operations
+          token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
+          # Release type for Go applications (built-in strategy)
+          release-type: go
+          # Skip GitHub release creation (we'll handle it manually)
+          skip-github-release: true
+          # Output variables for next steps
+          command: generate
+          config-file: .release-please-config.json
+          # Check if a new release should be created
+          check-for-release: true
+
+      - name: Check if release is needed
+        id: check_release
+        run: |
+          echo "🔍 Checking if a new release is needed..."
+          
+          # Check if Release Please generated a new version
+          if [ -n "${{ steps.release_please.outputs.tag_name }}" ]; then
+            echo "✅ New release version generated: ${{ steps.release_please.outputs.tag_name }}"
+            echo "should_release=true" >> $GITHUB_OUTPUT
+          else
+            echo "ℹ️  No new release version generated - using fallback version"
+            echo "should_release=true" >> $GITHUB_OUTPUT
+          fi
+          
+          # Generate fallback version if needed
+          if [ -z "${{ steps.release_please.outputs.tag_name }}" ]; then
+            FALLBACK_VERSION="v1.0.${{ github.run_number }}"
+            echo "fallback_version=$FALLBACK_VERSION" >> $GITHUB_OUTPUT
+            echo "🏷️  Using fallback version: $FALLBACK_VERSION"
+          fi
+
+      - name: Generate release notes
+        id: release_notes
+        run: |
+          echo "📝 Generating release notes..."
+          
+          # Determine version to use
+          VERSION="${{ steps.release_please.outputs.tag_name || steps.check_release.outputs.fallback_version || 'v1.0.0' }}"
+          echo "🏷️  Using version: $VERSION"
+          
+          # Get the latest tag
+          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v1.0.0")
+          echo "🏷️  Latest tag: $LATEST_TAG"
+          
+          # Get commits since last tag
+          COMMITS=$(git log --oneline --no-merges $LATEST_TAG..HEAD 2>/dev/null | head -10 || echo "- Initial release")
+          echo "📋 Recent commits:"
+          echo "$COMMITS"
+          
+          # Create release notes
+          cat > release-notes.md << EOF
+          ## 🚀 Gostly Release $VERSION
+          
+          ### 📋 What's New
+          
+          $COMMITS
+          
+          ### 🏗️  Build Information
+          
+          - **Go Version**: ${{ env.GO_VERSION }}
+          - **Node.js Version**: ${{ env.NODE_VERSION }}
+          - **Build Date**: $(date -u +'%Y-%m-%d %H:%M:%S UTC')
+          - **Commit**: ${{ github.sha }}
+          
+          ### 📦 Supported Platforms
+          
+          - **Linux**: AMD64, ARM64
+          - **macOS**: AMD64, ARM64  
+          - **Windows**: AMD64
+          
+          ### 🔒 Security Status
+          
+          - ✅ Go security scan passed
+          - ✅ npm audit completed
+          - ✅ All quality checks passed
+          
+          ### 📥 Download
+          
+          Download the appropriate binary for your platform from the assets below.
+          EOF
+          
+          echo "📝 Release notes generated:"
+          cat release-notes.md
+
+      - name: Create Release
+        id: create_release
+        run: |
+          echo "🚀 Creating GitHub release..."
+          
+          # Determine version to use
+          VERSION="${{ steps.release_please.outputs.tag_name || steps.check_release.outputs.fallback_version || 'v1.0.0' }}"
+          RELEASE_NAME="Gostly Release $VERSION"
+          
+          echo "🏷️  Version: $VERSION"
+          echo "📝 Release Name: $RELEASE_NAME"
+          
+          # Create release using GitHub CLI
+          gh release create "$VERSION" \
+            --title "$RELEASE_NAME" \
+            --notes-file release-notes.md \
+            --latest
+          
+          echo "✅ Release created successfully"
+          echo "release_tag=$VERSION" >> $GITHUB_OUTPUT
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload Release Assets
+        run: |
+          echo "📤 Uploading release assets..."
+          
+          # Determine version to use (same as create release step)
+          VERSION="${{ steps.release_please.outputs.tag_name || steps.check_release.outputs.fallback_version || 'v1.0.0' }}"
+          
+          # Upload each asset using GitHub CLI (already available in GitHub Actions)
+          if [ -d "release-assets" ] && [ "$(ls -A release-assets)" ]; then
+            echo "📦 Found assets to upload:"
+            ls -la release-assets/
+            
+            for asset in release-assets/*; do
+              if [ -f "$asset" ]; then
+                echo "📤 Uploading: $(basename $asset)"
+                gh release upload "$VERSION" "$asset" --clobber
+              fi
+            done
+            echo "✅ Release assets uploaded successfully"
+          else
+            echo "⚠️  No assets found to upload"
+            echo "📁 Checking artifacts directory:"
+            ls -la artifacts/ || echo "No artifacts directory found"
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Release Summary
+        run: |
+          echo "🎉 Release Summary"
+          echo "=================="
+          echo "✅ Release created successfully"
+          echo "🏷️  Tag: ${{ steps.create_release.outputs.release_tag }}"
+          echo "📅 Date: $(date -u)"
+          echo "🔗 URL: https://github.com/${{ github.repository }}/releases/tag/${{ steps.create_release.outputs.release_tag }}"
+          echo "📦 Assets: $(ls -1 release-assets/ 2>/dev/null | wc -l | tr -d ' ') files"
+          echo "🎯 All jobs completed successfully - automatic release triggered!"
+          
+          # Show release info using GitHub CLI
+          echo ""
+          echo "📋 Release Details:"
+          gh release view "${{ steps.create_release.outputs.release_tag }}" || echo "Could not fetch release details"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

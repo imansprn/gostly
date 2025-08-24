@@ -469,10 +469,23 @@ jobs:
           
           # Install runtime libraries (these can fail without breaking the build)
           echo "📦 Installing runtime libraries..."
-          sudo apt-get install -y \
-            libgtk-3-0 \
-            libwebkit2gtk-4.0-37 \
-            libwebkit2gtk-4.1-0 || echo "⚠️  Some runtime libraries failed to install (this is okay)"
+          
+          # Try to install the correct runtime package based on what we have
+          if [ "$WEBKIT_VERSION" = "4.1" ]; then
+            echo "📦 Installing webkit2gtk-4.1 runtime libraries..."
+            sudo apt-get install -y \
+              libgtk-3-0 \
+              libwebkit2gtk-4.1-0 || echo "⚠️  webkit2gtk-4.1 runtime failed to install"
+          elif [ "$WEBKIT_VERSION" = "4.0" ]; then
+            echo "📦 Installing webkit2gtk-4.0 runtime libraries..."
+            sudo apt-get install -y \
+              libgtk-3-0 \
+              libwebkit2gtk-4.0-37 || echo "⚠️  webkit2gtk-4.0 runtime failed to install"
+          else
+            echo "📦 Installing generic runtime libraries..."
+            sudo apt-get install -y \
+              libgtk-3-0 || echo "⚠️  GTK3 runtime failed to install"
+          fi
           
           if [ "$ADDITIONAL_DEPS_FAILED" = true ]; then
             echo "❌ Critical Wails dependencies installation failed"
@@ -505,6 +518,18 @@ jobs:
               echo "PKG_CONFIG_LIBDIR: $PKG_CONFIG_LIBDIR"
               echo "🔍 Checking for .pc files:"
               find /usr -name "*webkit*.pc" 2>/dev/null | head -10 || echo "No webkit .pc files found"
+              
+              # Additional debugging for WebKit installation
+              echo "🔍 WebKit package installation status:"
+              dpkg -l | grep webkit || echo "No webkit packages found in dpkg"
+              echo "🔍 Checking if WebKit development package is actually installed:"
+              if dpkg -l | grep -q "webkit2gtk-$WEBKIT_VERSION"; then
+                echo "✅ webkit2gtk-$WEBKIT_VERSION package is installed"
+                echo "🔍 Package details:"
+                dpkg -L "webkit2gtk-$WEBKIT_VERSION" | grep "\.pc$" || echo "No .pc files found in package"
+              else
+                echo "❌ webkit2gtk-$WEBKIT_VERSION package is NOT installed"
+              fi
             fi
           fi
           
@@ -559,6 +584,38 @@ jobs:
                   echo "❌ Symlink creation failed - webkit2gtk-4.0 still not available"
                   echo "🔍 Checking symlink:"
                   ls -la "$WEBKIT_DIR/webkit2gtk-4.0.pc" || echo "Symlink not found"
+                  
+                  # Try copying instead of symlinking
+                  echo "🔧 Trying copy approach instead of symlink..."
+                  sudo cp "$WEBKIT_PC_FILE" "$WEBKIT_DIR/webkit2gtk-4.0.pc"
+                  if pkg-config --cflags webkit2gtk-4.0 2>/dev/null; then
+                    echo "✅ Copy approach successful - webkit2gtk-4.0 now available"
+                  else
+                    echo "❌ Copy approach also failed - trying custom .pc file..."
+                    
+                    # Final attempt: create a custom .pc file
+                    echo "🔧 Creating custom webkit2gtk-4.0.pc file..."
+                    echo "prefix=/usr" | sudo tee "$WEBKIT_DIR/webkit2gtk-4.0.pc" > /dev/null
+                    echo "exec_prefix=\${prefix}" | sudo tee -a "$WEBKIT_DIR/webkit2gtk-4.0.pc" > /dev/null
+                    echo "libdir=\${prefix}/lib/x86_64-linux-gnu" | sudo tee -a "$WEBKIT_DIR/webkit2gtk-4.0.pc" > /dev/null
+                    echo "includedir=\${prefix}/include" | sudo tee -a "$WEBKIT_DIR/webkit2gtk-4.0.pc" > /dev/null
+                    echo "" | sudo tee -a "$WEBKIT_DIR/webkit2gtk-4.0.pc" > /dev/null
+                    echo "Name: webkit2gtk-4.0" | sudo tee -a "$WEBKIT_DIR/webkit2gtk-4.0.pc" > /dev/null
+                    echo "Description: Web content engine for GTK+" | sudo tee -a "$WEBKIT_DIR/webkit2gtk-4.0.pc" > /dev/null
+                    echo "Version: 4.0" | sudo tee -a "$WEBKIT_DIR/webkit2gtk-4.0.pc" > /dev/null
+                    echo "Requires: webkit2gtk-$WEBKIT_VERSION" | sudo tee -a "$WEBKIT_DIR/webkit2gtk-4.0.pc" > /dev/null
+                    echo "Libs: -L\${libdir} -lwebkit2gtk-$WEBKIT_VERSION" | sudo tee -a "$WEBKIT_DIR/webkit2gtk-4.0.pc" > /dev/null
+                    echo "Cflags: -I\${includedir}/webkitgtk-$WEBKIT_VERSION" | sudo tee -a "$WEBKIT_DIR/webkit2gtk-4.0.pc" > /dev/null
+                    
+                    # Test the custom .pc file
+                    if pkg-config --cflags webkit2gtk-4.0 2>/dev/null; then
+                      echo "✅ Custom .pc file successful - webkit2gtk-4.0 now available"
+                    else
+                      echo "❌ All approaches failed - Wails build will likely fail"
+                      echo "🔍 Final pkg-config test:"
+                      pkg-config --cflags webkit2gtk-4.0 2>&1 || echo "pkg-config failed"
+                    fi
+                  fi
                 fi
               else
                 echo "✅ webkit2gtk-4.0.pc already exists"
@@ -572,36 +629,84 @@ jobs:
             fi
           fi
           
-          # Final verification of webkit2gtk-4.0 availability
+          # Final verification and fix of webkit2gtk-4.0 availability
           echo "🔍 Final verification of webkit2gtk-4.0..."
           if pkg-config --cflags webkit2gtk-4.0 2>/dev/null; then
             echo "✅ webkit2gtk-4.0 is now available - Wails should work"
           else
-            echo "❌ webkit2gtk-4.0 still not available - trying alternative approach..."
+            echo "❌ webkit2gtk-4.0 still not available - applying aggressive fix..."
             
-            # Try to create a pkg-config alias using environment variable
-            if [ "$WEBKIT_VERSION" != "none" ] && [ "$WEBKIT_VERSION" != "4.0" ]; then
-              echo "🔧 Setting PKG_CONFIG_PATH to include webkit2gtk-$WEBKIT_VERSION..."
-              export PKG_CONFIG_PATH="/usr/lib/pkgconfig:/usr/lib/x86_64-linux-gnu/pkgconfig:/usr/share/pkgconfig:$PKG_CONFIG_PATH"
-              
-              # Try to create a simple alias by copying the .pc file
-              WEBKIT_PC_FILE=$(find /usr -name "webkit2gtk-$WEBKIT_VERSION.pc" 2>/dev/null | head -1)
-              if [ -n "$WEBKIT_PC_FILE" ]; then
-                WEBKIT_DIR=$(dirname "$WEBKIT_PC_FILE")
-                echo "🔧 Copying webkit2gtk-$WEBKIT_VERSION.pc to webkit2gtk-4.0.pc..."
-                sudo cp "$WEBKIT_PC_FILE" "$WEBKIT_DIR/webkit2gtk-4.0.pc"
-                
-                # Test again
-                if pkg-config --cflags webkit2gtk-4.0 2>/dev/null; then
-                  echo "✅ Copy approach successful - webkit2gtk-4.0 now available"
-                else
-                  echo "❌ Copy approach also failed - Wails build will likely fail"
-                fi
-              fi
+            # Aggressive fix: create webkit2gtk-4.0.pc directly in /usr/lib/pkgconfig
+            echo "🔧 Creating webkit2gtk-4.0.pc directly in /usr/lib/pkgconfig..."
+            
+            # First, find what webkit version is actually available
+            echo "🔍 Searching for available webkit packages..."
+            AVAILABLE_WEBKIT=$(find /usr -name "webkit2gtk-*.pc" 2>/dev/null | head -1)
+            if [ -n "$AVAILABLE_WEBKIT" ]; then
+              echo "🔍 Found webkit package: $AVAILABLE_WEBKIT"
+              # Extract version from filename
+              WEBKIT_VER=$(basename "$AVAILABLE_WEBKIT" | sed 's/webkit2gtk-\(.*\)\.pc/\1/')
+              echo "🔍 Extracted version: $WEBKIT_VER"
+            else
+              echo "🔍 No webkit .pc files found, using default 4.1"
+              WEBKIT_VER="4.1"
+            fi
+            
+            echo "🔧 Creating webkit2gtk-4.0.pc pointing to webkit2gtk-$WEBKIT_VER..."
+            
+            # Create the .pc file directly
+            sudo rm -f /usr/lib/pkgconfig/webkit2gtk-4.0.pc
+            echo "prefix=/usr" | sudo tee /usr/lib/pkgconfig/webkit2gtk-4.0.pc > /dev/null
+            echo "exec_prefix=\${prefix}" | sudo tee -a /usr/lib/pkgconfig/webkit2gtk-4.0.pc > /dev/null
+            echo "libdir=\${prefix}/lib/x86_64-linux-gnu" | sudo tee -a /usr/lib/pkgconfig/webkit2gtk-4.0.pc > /dev/null
+            echo "includedir=\${prefix}/include" | sudo tee -a /usr/lib/pkgconfig/webkit2gtk-4.0.pc > /dev/null
+            echo "" | sudo tee -a /usr/lib/pkgconfig/webkit2gtk-4.0.pc > /dev/null
+            echo "Name: webkit2gtk-4.0" | sudo tee -a /usr/lib/pkgconfig/webkit2gtk-4.0.pc > /dev/null
+            echo "Description: Web content engine for GTK+" | sudo tee -a /usr/lib/pkgconfig/webkit2gtk-4.0.pc > /dev/null
+            echo "Version: 4.0" | sudo tee -a /usr/lib/pkgconfig/webkit2gtk-4.0.pc > /dev/null
+            echo "Requires: webkit2gtk-$WEBKIT_VER" | sudo tee -a /usr/lib/pkgconfig/webkit2gtk-4.0.pc > /dev/null
+            echo "Libs: -L\${libdir} -lwebkit2gtk-$WEBKIT_VER" | sudo tee -a /usr/lib/pkgconfig/webkit2gtk-4.0.pc > /dev/null
+            echo "Cflags: -I\${includedir}/webkitgtk-$WEBKIT_VER" | sudo tee -a /usr/lib/pkgconfig/webkit2gtk-4.0.pc > /dev/null
+            
+            echo "🔍 Created .pc file contents:"
+            cat /usr/lib/pkgconfig/webkit2gtk-4.0.pc
+            
+            # Test if it works now
+            echo "🔍 Testing pkg-config..."
+            if pkg-config --cflags webkit2gtk-4.0 2>/dev/null; then
+              echo "✅ SUCCESS: webkit2gtk-4.0 is now available"
+              echo "🔍 pkg-config output:"
+              pkg-config --cflags webkit2gtk-4.0
+            else
+              echo "❌ FAILED: webkit2gtk-4.0 still not available"
+              echo "🔍 pkg-config error:"
+              pkg-config --cflags webkit2gtk-4.0 2>&1 || echo "pkg-config failed"
+              echo "🔍 File permissions:"
+              ls -la /usr/lib/pkgconfig/webkit2gtk-4.0.pc || echo "File not found"
             fi
           fi
           
-          echo "ℹ️  Wails CGO builds should now work properly"
+          # Final test and summary
+          echo "🔍 Final WebKit status check..."
+          echo "🔍 Testing webkit2gtk-4.0 availability:"
+          if pkg-config --cflags webkit2gtk-4.0 2>/dev/null; then
+            echo "✅ SUCCESS: webkit2gtk-4.0 is now available"
+            echo "🔍 pkg-config output:"
+            pkg-config --cflags webkit2gtk-4.0
+            echo "✅ Wails CGO builds should now work properly"
+          else
+            echo "❌ FAILED: webkit2gtk-4.0 is still not available"
+            echo "🔍 Final debugging info:"
+            echo "  - WEBKIT_PKG: $WEBKIT_PKG"
+            echo "  - WEBKIT_VERSION: $WEBKIT_VERSION"
+            echo "  - Available webkit packages:"
+            pkg-config --list-all | grep webkit || echo "    No webkit packages found"
+            echo "  - .pc files in /usr/lib/pkgconfig:"
+            ls -la /usr/lib/pkgconfig/*webkit* 2>/dev/null || echo "    No webkit .pc files found"
+            echo "❌ Wails build will likely fail - manual intervention may be needed"
+          fi
+          
+
 
       - name: Install Wails CLI
         shell: bash
@@ -1138,11 +1243,13 @@ jobs:
             echo "🔍 Found .exe files:"
             find . -name "*.exe" -type f -exec echo "  - {}" \;
             for exe_file in $(find . -name "*.exe" -type f); do
-              if [ -f "$exe_file" ] && [ -x "$exe_file" ] && [ "$(dirname "$exe_file" | sed 's|^\./||')" != "build/bin" ]; then
+              # Normalize the directory path by removing ./ prefix
+              DIR_PATH=$(dirname "$exe_file" | sed 's|^\./||')
+              if [ -f "$exe_file" ] && [ -x "$exe_file" ] && [ "$DIR_PATH" != "build/bin" ]; then
                 echo "📦 Copying: $exe_file"
                 cp "$exe_file" build/bin/
                 ARTIFACTS_COPIED=$((ARTIFACTS_COPIED + 1))
-              elif [ "$(dirname "$exe_file" | sed 's|^\./||')" = "build/bin" ]; then
+              elif [ "$DIR_PATH" = "build/bin" ]; then
                 echo "✅ $exe_file already in build/bin/"
                 ARTIFACTS_COPIED=$((ARTIFACTS_COPIED + 1))
               fi
@@ -1175,11 +1282,13 @@ jobs:
             echo "🔍 Found gostly* files:"
             find . -name "gostly*" -type f -exec echo "  - {}" \;
             for bin_file in $(find . -name "gostly*" -type f); do
-              if [ -f "$bin_file" ] && [ -x "$bin_file" ] && [ "$(dirname "$bin_file")" != "build/bin" ]; then
+              # Normalize the directory path by removing ./ prefix
+              DIR_PATH=$(dirname "$bin_file" | sed 's|^\./||')
+              if [ -f "$bin_file" ] && [ -x "$bin_file" ] && [ "$DIR_PATH" != "build/bin" ]; then
                 echo "📦 Copying: $bin_file"
                 cp "$bin_file" build/bin/
                 ARTIFACTS_COPIED=$((ARTIFACTS_COPIED + 1))
-              elif [ "$(dirname "$bin_file")" = "build/bin" ]; then
+              elif [ "$DIR_PATH" = "build/bin" ]; then
                 echo "✅ $bin_file already in build/bin/"
                 ARTIFACTS_COPIED=$((ARTIFACTS_COPIED + 1))
               fi

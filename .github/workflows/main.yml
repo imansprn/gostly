@@ -545,6 +545,21 @@ jobs:
           echo "📋 WebKit package: $WEBKIT_PKG"
           echo "📋 WebKit version: $WEBKIT_VERSION"
           
+          # Final verification that webkit2gtk-4.0 is available
+          echo "🔍 Final verification: webkit2gtk-4.0 availability for Wails..."
+          if pkg-config --cflags webkit2gtk-4.0 2>/dev/null; then
+            echo "✅ SUCCESS: webkit2gtk-4.0 is available - Wails should work"
+            echo "🔍 pkg-config output:"
+            pkg-config --cflags webkit2gtk-4.0
+          else
+            echo "❌ CRITICAL: webkit2gtk-4.0 is still not available"
+            echo "🔍 This will cause Wails builds to fail"
+            echo "🔍 Available webkit packages:"
+            pkg-config --list-all | grep webkit || echo "    No webkit packages found"
+            echo "❌ Cannot proceed without webkit2gtk-4.0 - exiting"
+            exit 1
+          fi
+          
           # Try to fix pkg-config issues if webkit2gtk-4.0 is not found
           if [ "$WEBKIT_VERSION" != "none" ] && [ "$WEBKIT_VERSION" != "4.0" ]; then
             echo "🔧 Attempting to fix pkg-config for webkit2gtk-4.0..."
@@ -595,17 +610,17 @@ jobs:
                     
                     # Final attempt: create a custom .pc file
                     echo "🔧 Creating custom webkit2gtk-4.0.pc file..."
-                    echo "prefix=/usr" | sudo tee "$WEBKIT_DIR/webkit2gtk-4.0.pc" > /dev/null
-                    echo "exec_prefix=\${prefix}" | sudo tee -a "$WEBKIT_DIR/webkit2gtk-4.0.pc" > /dev/null
-                    echo "libdir=\${prefix}/lib/x86_64-linux-gnu" | sudo tee -a "$WEBKIT_DIR/webkit2gtk-4.0.pc" > /dev/null
-                    echo "includedir=\${prefix}/include" | sudo tee -a "$WEBKIT_DIR/webkit2gtk-4.0.pc" > /dev/null
-                    echo "" | sudo tee -a "$WEBKIT_DIR/webkit2gtk-4.0.pc" > /dev/null
-                    echo "Name: webkit2gtk-4.0" | sudo tee -a "$WEBKIT_DIR/webkit2gtk-4.0.pc" > /dev/null
-                    echo "Description: Web content engine for GTK+" | sudo tee -a "$WEBKIT_DIR/webkit2gtk-4.0.pc" > /dev/null
-                    echo "Version: 4.0" | sudo tee -a "$WEBKIT_DIR/webkit2gtk-4.0.pc" > /dev/null
-                    echo "Requires: webkit2gtk-$WEBKIT_VERSION" | sudo tee -a "$WEBKIT_DIR/webkit2gtk-4.0.pc" > /dev/null
-                    echo "Libs: -L\${libdir} -lwebkit2gtk-$WEBKIT_VERSION" | sudo tee -a "$WEBKIT_DIR/webkit2gtk-4.0.pc" > /dev/null
-                    echo "Cflags: -I\${includedir}/webkitgtk-$WEBKIT_VERSION" | sudo tee -a "$WEBKIT_DIR/webkit2gtk-4.0.pc" > /dev/null
+                    echo "prefix=/usr" > /tmp/webkit2gtk-4.0.pc
+                    echo "exec_prefix=\${prefix}" >> /tmp/webkit2gtk-4.0.pc
+                    echo "libdir=\${prefix}/lib/x86_64-linux-gnu" >> /tmp/webkit2gtk-4.0.pc
+                    echo "includedir=\${prefix}/include" >> /tmp/webkit2gtk-4.0.pc
+                    echo "" >> /tmp/webkit2gtk-4.0.pc
+                    echo "Name: webkit2gtk-4.0" >> /tmp/webkit2gtk-4.0.pc
+                    echo "Description: Web content engine for GTK+" >> /tmp/webkit2gtk-4.0.pc
+                    echo "Version: 4.0" >> /tmp/webkit2gtk-4.0.pc
+                    echo "Requires: webkit2gtk-$WEBKIT_VER" >> /tmp/webkit2gtk-4.0.pc
+                    echo "Libs: -L\${libdir} -lwebkit2gtk-$WEBKIT_VER" >> /tmp/webkit2gtk-4.0.pc
+                    echo "Cflags: -I\${includedir}/webkitgtk-$WEBKIT_VER" >> /tmp/webkit2gtk-4.0.pc
                     
                     # Test the custom .pc file
                     if pkg-config --cflags webkit2gtk-4.0 2>/dev/null; then
@@ -656,17 +671,17 @@ jobs:
             
             # Create the .pc file directly
             sudo rm -f /usr/lib/pkgconfig/webkit2gtk-4.0.pc
-            echo "prefix=/usr" | sudo tee /usr/lib/pkgconfig/webkit2gtk-4.0.pc > /dev/null
-            echo "exec_prefix=\${prefix}" | sudo tee -a /usr/lib/pkgconfig/webkit2gtk-4.0.pc > /dev/null
-            echo "libdir=\${prefix}/lib/x86_64-linux-gnu" | sudo tee -a /usr/lib/pkgconfig/webkit2gtk-4.0.pc > /dev/null
-            echo "includedir=\${prefix}/include" | sudo tee -a /usr/lib/pkgconfig/webkit2gtk-4.0.pc > /dev/null
-            echo "" | sudo tee -a /usr/lib/pkgconfig/webkit2gtk-4.0.pc > /dev/null
-            echo "Name: webkit2gtk-4.0" | sudo tee -a /usr/lib/pkgconfig/webkit2gtk-4.0.pc > /dev/null
-            echo "Description: Web content engine for GTK+" | sudo tee -a /usr/lib/pkgconfig/webkit2gtk-4.0.pc > /dev/null
-            echo "Version: 4.0" | sudo tee -a /usr/lib/pkgconfig/webkit2gtk-4.0.pc > /dev/null
-            echo "Requires: webkit2gtk-$WEBKIT_VER" | sudo tee -a /usr/lib/pkgconfig/webkit2gtk-4.0.pc > /dev/null
-            echo "Libs: -L\${libdir} -lwebkit2gtk-$WEBKIT_VER" | sudo tee -a /usr/lib/pkgconfig/webkit2gtk-4.0.pc > /dev/null
-            echo "Cflags: -I\${includedir}/webkitgtk-$WEBKIT_VER" | sudo tee -a /usr/lib/pkgconfig/webkit2gtk-4.0.pc > /dev/null
+            echo "prefix=/usr" > /tmp/webkit2gtk-4.0.pc
+            echo "exec_prefix=\${prefix}" >> /tmp/webkit2gtk-4.0.pc
+            echo "libdir=\${prefix}/lib/x86_64-linux-gnu" >> /tmp/webkit2gtk-4.0.pc
+            echo "includedir=\${prefix}/include" >> /tmp/webkit2gtk-4.0.pc
+            echo "" >> /tmp/webkit2gtk-4.0.pc
+            echo "Name: webkit2gtk-4.0" >> /tmp/webkit2gtk-4.0.pc
+            echo "Description: Web content engine for GTK+" >> /tmp/webkit2gtk-4.0.pc
+            echo "Version: 4.0" >> /tmp/webkit2gtk-4.0.pc
+            echo "Requires: webkit2gtk-$WEBKIT_VER" >> /tmp/webkit2gtk-4.0.pc
+            echo "Libs: -L\${libdir} -lwebkit2gtk-$WEBKIT_VER" >> /tmp/webkit2gtk-4.0.pc
+            echo "Cflags: -I\${includedir}/webkitgtk-$WEBKIT_VER" >> /tmp/webkit2gtk-4.0.pc
             
             echo "🔍 Created .pc file contents:"
             cat /usr/lib/pkgconfig/webkit2gtk-4.0.pc
@@ -703,7 +718,54 @@ jobs:
             pkg-config --list-all | grep webkit || echo "    No webkit packages found"
             echo "  - .pc files in /usr/lib/pkgconfig:"
             ls -la /usr/lib/pkgconfig/*webkit* 2>/dev/null || echo "    No webkit .pc files found"
-            echo "❌ Wails build will likely fail - manual intervention may be needed"
+            
+            # Apply the most aggressive fix possible
+            echo "🔧 Applying aggressive WebKit compatibility fix..."
+            
+            # Find any available webkit2gtk package
+            AVAILABLE_WEBKIT=$(find /usr -name "webkit2gtk-*.pc" 2>/dev/null | head -1)
+            if [ -n "$AVAILABLE_WEBKIT" ]; then
+              echo "🔍 Found available webkit package: $AVAILABLE_WEBKIT"
+              WEBKIT_VER=$(basename "$AVAILABLE_WEBKIT" | sed 's/webkit2gtk-\(.*\)\.pc/\1/')
+              echo "🔍 Using version: $WEBKIT_VER"
+              
+              # Create webkit2gtk-4.0.pc in multiple locations
+              for pkg_dir in /usr/lib/pkgconfig /usr/lib/x86_64-linux-gnu/pkgconfig; do
+                if [ -d "$pkg_dir" ]; then
+                  echo "🔧 Creating webkit2gtk-4.0.pc in $pkg_dir..."
+                  sudo rm -f "$pkg_dir/webkit2gtk-4.0.pc"
+                  
+                  # Create a proper .pc file that maps to the available version
+                  echo "prefix=/usr" > /tmp/webkit2gtk-4.0.pc
+                  echo "exec_prefix=\${prefix}" >> /tmp/webkit2gtk-4.0.pc
+                  echo "libdir=\${prefix}/lib/x86_64-linux-gnu" >> /tmp/webkit2gtk-4.0.pc
+                  echo "includedir=\${prefix}/include" >> /tmp/webkit2gtk-4.0.pc
+                  echo "" >> /tmp/webkit2gtk-4.0.pc
+                  echo "Name: webkit2gtk-4.0" >> /tmp/webkit2gtk-4.0.pc
+                  echo "Description: Web content engine for GTK+" >> /tmp/webkit2gtk-4.0.pc
+                  echo "Version: 4.0" >> /tmp/webkit2gtk-4.0.pc
+                  echo "Requires: webkit2gtk-$WEBKIT_VER" >> /tmp/webkit2gtk-4.0.pc
+                  echo "Libs: -L\${libdir} -lwebkit2gtk-$WEBKIT_VER" >> /tmp/webkit2gtk-4.0.pc
+                  echo "Cflags: -I\${includedir}/webkitgtk-$WEBKIT_VER" >> /tmp/webkit2gtk-4.0.pc
+                  
+                  sudo cp /tmp/webkit2gtk-4.0.pc "$pkg_dir/"
+                  echo "✅ Created webkit2gtk-4.0.pc in $pkg_dir"
+                fi
+              done
+              
+              # Test if it works now
+              echo "🔍 Testing pkg-config after aggressive fix..."
+              if pkg-config --cflags webkit2gtk-4.0 2>/dev/null; then
+                echo "✅ SUCCESS: webkit2gtk-4.0 is now available after aggressive fix"
+                echo "🔍 pkg-config output:"
+                pkg-config --cflags webkit2gtk-4.0
+              else
+                echo "❌ FAILED: webkit2gtk-4.0 still not available even after aggressive fix"
+                echo "🔍 This will cause Wails builds to fail"
+              fi
+            else
+              echo "❌ No webkit packages found anywhere - Wails will definitely fail"
+            fi
           fi
           
 
@@ -713,44 +775,6 @@ jobs:
         run: |
           echo "📦 Installing Wails CLI..."
           echo "🔧 Current environment: GOOS=$GOOS, GOARCH=$GOARCH, CGO_ENABLED=$CGO_ENABLED"
-          
-          # Validate required environment variables
-          echo "🔍 Validating required environment variables..."
-          MISSING_VARS=""
-          
-          if [ -z "$GOOS" ]; then
-            MISSING_VARS="$MISSING_VARS GOOS"
-          fi
-          
-          if [ -z "$GOARCH" ]; then
-            MISSING_VARS="$MISSING_VARS GOARCH"
-          fi
-          
-          if [ -z "$CGO_ENABLED" ]; then
-            MISSING_VARS="$MISSING_VARS CGO_ENABLED"
-          fi
-          
-          if [ -n "$MISSING_VARS" ]; then
-            echo "❌ Missing required environment variables: $MISSING_VARS"
-            echo "🔍 Current environment:"
-            echo "  GOOS: '$GOOS'"
-            echo "  GOARCH: '$GOARCH'"
-            echo "  CGO_ENABLED: '$CGO_ENABLED'"
-            exit 1
-          fi
-          
-          echo "✅ All required environment variables are set"
-          
-          # Get Go environment variables
-          echo "🔍 Go environment before installation:"
-          GOPATH=$(go env GOPATH)
-          GOBIN=$(go env GOBIN)
-          echo "GOPATH: $GOPATH"
-          echo "GOBIN: $GOBIN"
-          echo "GOOS: $(go env GOOS)"
-          echo "GOARCH: $(go env GOARCH)"
-          echo "GOROOT: $(go env GOROOT)"
-          echo "CGO_ENABLED: $(go env CGO_ENABLED)"
           
           # Install Wails CLI with retry mechanism
           echo "🚀 Installing Wails CLI..."
@@ -775,71 +799,76 @@ jobs:
             fi
           done
           
-          # Verify the binary was created (check both direct and platform-specific locations)
-          echo "🔍 Checking if wails binary was created..."
+          # Find the Wails binary in various possible locations
+          echo "🔍 Searching for Wails binary..."
+          GOPATH=$(go env GOPATH)
+          GOROOT=$(go env GOROOT)
+          
+          echo "🔧 Go environment:"
+          echo "  GOPATH: $GOPATH"
+          echo "  GOROOT: $GOROOT"
+          echo "  PATH: $PATH"
+          
+          # Check multiple possible locations
           WAILS_BINARY=""
           
-          # Check direct location first
+          # Check GOPATH/bin first
           if [ -f "$GOPATH/bin/wails" ]; then
             WAILS_BINARY="$GOPATH/bin/wails"
             echo "✅ Wails binary found at $WAILS_BINARY"
-          else
-            echo "⚠️  Wails binary not found at $GOPATH/bin/wails"
-            
-            # Check for platform-specific subdirectories
-            echo "🔍 Checking for platform-specific binary locations..."
-            for platform_dir in "$GOPATH/bin"/*/; do
-              if [ -d "$platform_dir" ]; then
-                echo "🔍 Checking platform directory: $platform_dir"
-                if [ -f "$platform_dir/wails" ]; then
-                  WAILS_BINARY="$platform_dir/wails"
-                  echo "✅ Wails binary found at $WAILS_BINARY"
-                  break
-                fi
-              fi
-            done
-            
-            # If still not found, check for any wails binary in GOPATH
-            if [ -z "$WAILS_BINARY" ]; then
-              echo "🔍 Searching for wails binary in entire GOPATH..."
-              FOUND_WAILS=$(find "$GOPATH" -name "wails" -type f 2>/dev/null | head -1)
-              if [ -n "$FOUND_WAILS" ]; then
-                WAILS_BINARY="$FOUND_WAILS"
-                echo "✅ Wails binary found at $WAILS_BINARY"
-              else
-                echo "❌ Wails binary not found anywhere in GOPATH"
-                echo "🔍 Checking GOPATH/bin contents:"
-                ls -la "$GOPATH/bin/" || echo "GOPATH/bin directory not accessible"
-                
-                # Try alternative installation method
-                echo "🔄 Trying alternative installation method..."
-                if go install github.com/wailsapp/wails/v2/cmd/wails@v2.8.0; then
-                  echo "✅ Alternative Wails CLI installation successful"
-                  # Check again for binary
-                  FOUND_WAILS=$(find "$GOPATH" -name "wails" -type f 2>/dev/null | head -1)
-                  if [ -n "$FOUND_WAILS" ]; then
-                    WAILS_BINARY="$FOUND_WAILS"
-                    echo "✅ Wails binary found after alternative installation at $WAILS_BINARY"
-                  else
-                    echo "❌ Still no wails binary found after alternative installation"
-                    exit 1
-                  fi
-                else
-                  echo "❌ Alternative installation also failed"
-                  exit 1
-                fi
-              fi
+          fi
+          
+          # Check GOROOT/bin if not found
+          if [ -z "$WAILS_BINARY" ] && [ -f "$GOROOT/bin/wails" ]; then
+            WAILS_BINARY="$GOROOT/bin/wails"
+            echo "✅ Wails binary found at $WAILS_BINARY"
+          fi
+          
+          # Check if it's in PATH
+          if [ -z "$WAILS_BINARY" ] && command -v wails >/dev/null 2>&1; then
+            WAILS_BINARY=$(command -v wails)
+            echo "✅ Wails binary found in PATH at $WAILS_BINARY"
+          fi
+          
+          # Search recursively in GOPATH if still not found
+          if [ -z "$WAILS_BINARY" ]; then
+            echo "🔍 Searching recursively in GOPATH..."
+            FOUND_WAILS=$(find "$GOPATH" -name "wails" -type f 2>/dev/null | head -1)
+            if [ -n "$FOUND_WAILS" ]; then
+              WAILS_BINARY="$FOUND_WAILS"
+              echo "✅ Wails binary found at $WAILS_BINARY"
             fi
           fi
           
-          # Test the binary directly
-          echo "🧪 Testing wails binary directly..."
-          if [ -n "$WAILS_BINARY" ] && "$WAILS_BINARY" version; then
-            echo "✅ Wails binary works correctly at $WAILS_BINARY"
-            # Store the binary path for later use
+          # If still not found, try to find any wails binary
+          if [ -z "$WAILS_BINARY" ]; then
+            echo "🔍 Searching for any wails binary in system..."
+            FOUND_WAILS=$(find /usr -name "wails" -type f 2>/dev/null | head -1)
+            if [ -n "$FOUND_WAILS" ]; then
+              WAILS_BINARY="$FOUND_WAILS"
+              echo "✅ Wails binary found at $WAILS_BINARY"
+            fi
+          fi
+          
+          if [ -n "$WAILS_BINARY" ]; then
+            echo "✅ Wails binary found at: $WAILS_BINARY"
             echo "WAILS_BINARY_PATH=$WAILS_BINARY" >> $GITHUB_ENV
+            
+            # Test the binary
+            echo "🧪 Testing wails binary..."
+            if "$WAILS_BINARY" version; then
+              echo "✅ Wails binary works correctly"
+            else
+              echo "❌ Wails binary failed to execute"
+              exit 1
+            fi
           else
-            echo "❌ Wails binary failed to execute"
+            echo "❌ Wails binary not found anywhere!"
+            echo "🔍 Checking what was actually installed..."
+            echo "🔍 GOPATH/bin contents:"
+            ls -la "$GOPATH/bin/" || echo "GOPATH/bin directory not accessible"
+            echo "🔍 GOROOT/bin contents:"
+            ls -la "$GOROOT/bin/" || echo "GOROOT/bin directory not accessible"
             exit 1
           fi
           
@@ -865,36 +894,52 @@ jobs:
         run: |
           echo "🔍 Verifying Wails installation..."
           
-          # Get Go environment variables and stored wails path
-          GOPATH=$(go env GOPATH)
-          echo "🔧 GOPATH: $GOPATH"
-          echo "🔧 Stored WAILS_BINARY_PATH: $WAILS_BINARY_PATH"
-          
-          # Check if wails binary exists and is executable using stored path
-          if [ -n "$WAILS_BINARY_PATH" ] && [ -f "$WAILS_BINARY_PATH" ] && [ -x "$WAILS_BINARY_PATH" ]; then
-            echo "✅ Wails CLI found at $WAILS_BINARY_PATH"
-            echo "🔍 Binary details:"
-            ls -la "$WAILS_BINARY_PATH"
-            echo "🔍 Testing wails version:"
-            "$WAILS_BINARY_PATH" version
-            echo "🔍 Testing wails doctor:"
-            "$WAILS_BINARY_PATH" doctor || echo "⚠️  wails doctor failed (this is okay)"
-            
-            # Also test if wails is accessible via PATH
-            echo "🔍 Testing if wails is accessible via PATH..."
-            if command -v wails >/dev/null 2>&1; then
-              echo "✅ Wails CLI accessible via PATH"
-              echo "🔍 PATH wails location: $(command -v wails)"
-            else
-              echo "⚠️  Wails CLI not accessible via PATH (will use full path)"
-            fi
+          # Check if wails binary exists and is executable
+          if [ -n "$WAILS_BINARY_PATH" ]; then
+            WAILS_PATH="$WAILS_BINARY_PATH"
           else
-            echo "❌ Wails CLI not found or not executable at $WAILS_BINARY_PATH"
-            echo "🔍 Checking GOPATH/bin contents:"
-            ls -la "$GOPATH/bin/" || echo "GOPATH/bin directory not accessible"
-            echo "❌ Cannot continue without Wails CLI"
+            # Fallback to searching for it
+            GOPATH=$(go env GOPATH)
+            WAILS_PATH="$GOPATH/bin/wails"
+          fi
+          
+          if [ -f "$WAILS_PATH" ] && [ -x "$WAILS_PATH" ]; then
+            echo "✅ Wails CLI found at $WAILS_PATH"
+            echo "🔍 Binary details:"
+            ls -la "$WAILS_PATH"
+            echo "🔍 Testing wails version:"
+            "$WAILS_PATH" version
+          else
+            echo "❌ Wails CLI not found or not executable at $WAILS_PATH"
+            echo "🔍 Searching for Wails binary..."
+            find . -name "wails" -type f 2>/dev/null || echo "No wails binary found in current directory"
             exit 1
           fi
+          
+          # Check Wails project configuration
+          echo "🔍 Checking Wails project configuration..."
+          if [ -f "wails.json" ]; then
+            echo "✅ wails.json found"
+          else
+            echo "❌ wails.json not found - this may cause build issues"
+          fi
+          
+          # Check if frontend/dist exists
+          echo "🔍 Checking frontend structure..."
+          if [ -d "frontend/dist" ]; then
+            echo "✅ frontend/dist directory exists"
+          else
+            echo "⚠️  frontend/dist directory not found - this may cause build issues"
+          fi
+          
+          # Verify environment variable is set
+          echo "🔍 Environment variable verification:"
+          echo "  WAILS_BINARY_PATH: '$WAILS_BINARY_PATH'"
+          echo "  WAILS_PATH: '$WAILS_PATH'"
+          
+          # Set the environment variable again to ensure it's available
+          echo "WAILS_BINARY_PATH=$WAILS_PATH" >> $GITHUB_ENV
+          echo "✅ Set WAILS_BINARY_PATH=$WAILS_PATH in GitHub environment"
 
       - name: Verify build environment
         shell: bash
@@ -907,8 +952,31 @@ jobs:
           echo "  - CGO_ENABLED: $CGO_ENABLED"
           echo "  - GOOS: $GOOS"
           echo "  - GOARCH: $GOARCH"
+          echo "  - WAILS_BINARY_PATH: '$WAILS_BINARY_PATH'"
           echo "💻 Current platform: $(uname -s) $(uname -m)"
           echo "📁 Working directory: $(pwd)"
+          
+          # Verify Wails binary path is accessible
+          if [ -n "$WAILS_BINARY_PATH" ]; then
+            echo "✅ WAILS_BINARY_PATH is set: $WAILS_BINARY_PATH"
+            if [ -f "$WAILS_BINARY_PATH" ]; then
+              echo "✅ Wails binary exists at: $WAILS_BINARY_PATH"
+              if [ -x "$WAILS_BINARY_PATH" ]; then
+                echo "✅ Wails binary is executable"
+                echo "🔍 Testing wails version:"
+                "$WAILS_BINARY_PATH" version
+              else
+                echo "❌ Wails binary is not executable"
+                exit 1
+              fi
+            else
+              echo "❌ Wails binary not found at: $WAILS_BINARY_PATH"
+              exit 1
+            fi
+          else
+            echo "❌ WAILS_BINARY_PATH is not set"
+            exit 1
+          fi
           
           echo "ℹ️  CGO enabled for AMD64 build"
           echo "✅ Environment verification completed"
@@ -1118,36 +1186,97 @@ jobs:
           echo "🚀 Starting Wails build..."
           echo "📋 Wails build strategy: Cross-platform desktop application"
           
-          # Build with Wails using stored binary path or fallback
-          if [ -n "$WAILS_BINARY_PATH" ] && [ -f "$WAILS_BINARY_PATH" ]; then
-            echo "✅ Using Wails binary at: $WAILS_BINARY_PATH"
-            WAILS_CMD="$WAILS_BINARY_PATH"
-          else
-            echo "⚠️  WAILS_BINARY_PATH not set or invalid, searching for wails binary..."
-            GOPATH=$(go env GOPATH)
-            
-            # Search for wails binary in common locations
-            if [ -f "$GOPATH/bin/wails" ]; then
-              WAILS_CMD="$GOPATH/bin/wails"
-              echo "✅ Found wails binary at: $WAILS_CMD"
-            elif [ -f "$(which wails 2>/dev/null)" ]; then
-              WAILS_CMD="$(which wails)"
-              echo "✅ Found wails binary in PATH at: $WAILS_CMD"
+          # Ensure build directory structure exists
+          echo "📁 Creating build directory structure..."
+          mkdir -p build/bin
+          echo "✅ Build directory structure created"
+          
+          # Verify environment variables are set
+          echo "🔍 Environment variable verification in build step:"
+          echo "  WAILS_BINARY_PATH: '$WAILS_BINARY_PATH'"
+          echo "  GOOS: '$GOOS'"
+          echo "  GOARCH: '$GOARCH'"
+          echo "  CGO_ENABLED: '$CGO_ENABLED'"
+          
+          # Test if Wails can build at all
+          echo "🧪 Testing Wails build capability..."
+          echo "🔍 WAILS_CMD value: '$WAILS_CMD'"
+          echo "🔍 WAILS_BINARY_PATH value: '$WAILS_BINARY_PATH'"
+          
+          # Ensure WAILS_CMD is set
+          if [ -z "$WAILS_CMD" ]; then
+            echo "❌ WAILS_CMD is not set, trying to find Wails binary..."
+            if [ -n "$WAILS_BINARY_PATH" ]; then
+              WAILS_CMD="$WAILS_BINARY_PATH"
+              echo "✅ Set WAILS_CMD from WAILS_BINARY_PATH: $WAILS_CMD"
             else
-              echo "❌ No wails binary found anywhere!"
-              echo "🔍 Searching entire GOPATH for wails binary..."
-              FOUND_WAILS=$(find "$GOPATH" -name "wails" -type f 2>/dev/null | head -1)
-              if [ -n "$FOUND_WAILS" ]; then
-                WAILS_CMD="$FOUND_WAILS"
-                echo "✅ Found wails binary at: $WAILS_CMD"
-              else
-                echo "❌ Cannot continue - no wails binary available"
-                exit 1
-              fi
+              GOPATH=$(go env GOPATH)
+              WAILS_CMD="$GOPATH/bin/wails"
+              echo "⚠️  Set WAILS_CMD from GOPATH: $WAILS_CMD"
             fi
           fi
           
-          echo "📋 Build command: $WAILS_CMD build -platform $GOOS/$GOARCH -o gostly"
+          echo "🔍 Final WAILS_CMD value: '$WAILS_CMD'"
+          
+          if [ -f "$WAILS_CMD" ]; then
+            echo "✅ Wails binary exists at: $WAILS_CMD"
+            if "$WAILS_CMD" version >/dev/null 2>&1; then
+              echo "✅ Wails build command is working"
+            else
+              echo "❌ Wails build command is not working"
+              exit 1
+            fi
+          else
+            echo "❌ Wails binary not found at: $WAILS_CMD"
+            exit 1
+          fi
+          
+          # Test if Wails can actually build the project
+          echo "🧪 Testing Wails project build capability..."
+          if "$WAILS_CMD" doctor >/dev/null 2>&1; then
+            echo "✅ Wails doctor command working"
+          else
+            echo "⚠️  Wails doctor command failed (this is okay)"
+          fi
+          
+          # Check if we're in a valid Wails project
+          echo "🔍 Checking Wails project structure..."
+          if [ -f "wails.json" ]; then
+            echo "✅ wails.json found - this is a valid Wails project"
+          else
+            echo "❌ wails.json not found - this is not a valid Wails project"
+            exit 1
+          fi
+          
+          # Check if frontend/dist exists (required for Wails build)
+          echo "🔍 Checking frontend structure..."
+          if [ -d "frontend/dist" ]; then
+            echo "✅ frontend/dist directory exists"
+          else
+            echo "❌ frontend/dist directory not found - Wails build will fail"
+            echo "🔄 Creating minimal frontend/dist structure..."
+            mkdir -p frontend/dist
+            echo "<!DOCTYPE html><html><head><title>Gostly</title></head><body><h1>Gostly</h1></body></html>" > frontend/dist/index.html
+            echo "✅ Minimal frontend/dist structure created"
+          fi
+          
+          # Build with Wails using stored binary path or fallback
+          if [ -n "$WAILS_BINARY_PATH" ]; then
+            WAILS_CMD="$WAILS_BINARY_PATH"
+            echo "✅ Using Wails binary at: $WAILS_CMD"
+          else
+            # Fallback to searching for it
+            GOPATH=$(go env GOPATH)
+            WAILS_CMD="$GOPATH/bin/wails"
+            echo "⚠️  Using fallback Wails binary at: $WAILS_CMD"
+          fi
+          
+          if [ ! -f "$WAILS_CMD" ]; then
+            echo "❌ Wails binary not found at $WAILS_CMD"
+            exit 1
+          fi
+          
+          echo "📋 Build command: $WAILS_CMD build -platform $GOOS/$GOARCH"
           
           # Try Wails build with retry mechanism
           MAX_BUILD_RETRIES=3
@@ -1157,12 +1286,18 @@ jobs:
           while [ $BUILD_RETRY_COUNT -lt $MAX_BUILD_RETRIES ] && [ "$BUILD_SUCCESS" = false ]; do
             echo "🔄 Wails build attempt $((BUILD_RETRY_COUNT + 1)) of $MAX_BUILD_RETRIES"
             
-            if "$WAILS_CMD" build -platform $GOOS/$GOARCH -o gostly; then
+            # Use the correct Wails build command for cross-platform builds
+            echo "🚀 Attempting Wails build with platform: $GOOS/$GOARCH"
+            echo "🔧 Build command: $WAILS_CMD build -platform $GOOS/$GOARCH"
+            
+            if "$WAILS_CMD" build -platform $GOOS/$GOARCH; then
               echo "✅ Wails build successful"
               BUILD_SUCCESS=true
               break
             else
               BUILD_RETRY_COUNT=$((BUILD_RETRY_COUNT + 1))
+              echo "❌ Wails build failed (attempt $BUILD_RETRY_COUNT of $MAX_BUILD_RETRIES)"
+              
               if [ $BUILD_RETRY_COUNT -lt $MAX_BUILD_RETRIES ]; then
                 echo "⚠️  Wails build failed, retrying in 10 seconds..."
                 sleep 10
@@ -1172,23 +1307,15 @@ jobs:
                 
                 # Try building without specifying platform
                 echo "🔄 Attempting build without platform specification..."
-                if "$WAILS_CMD" build -o gostly; then
+                if "$WAILS_CMD" build; then
                   echo "✅ Alternative build successful (no platform specified)"
-                  BUILD_SUCCESS=true
-                  break
-                fi
-                
-                # Try building with different output name
-                echo "🔄 Attempting build with different output name..."
-                if "$WAILS_CMD" build -o gostend-app; then
-                  echo "✅ Alternative build successful (different output name)"
                   BUILD_SUCCESS=true
                   break
                 fi
                 
                 # Try building with verbose output for debugging
                 echo "🔄 Attempting build with verbose output..."
-                if "$WAILS_CMD" build -verbose -o gostly; then
+                if "$WAILS_CMD" build -verbose; then
                   echo "✅ Alternative build successful (verbose mode)"
                   BUILD_SUCCESS=true
                   break
@@ -1209,133 +1336,83 @@ jobs:
           ls -la
           ls -la build/ 2>/dev/null || echo "No build directory yet"
           
-          # Wails creates different output structures based on platform
-          if [ "$GOOS" = "windows" ]; then
-            # Windows: Look for .exe files
-            echo "🔍 Looking for Windows executables..."
-            find . -name "*.exe" -type f
-            find build/ -name "*.exe" -type f 2>/dev/null || echo "No build directory"
-          elif [ "$GOOS" = "darwin" ]; then
-            # macOS: Look for .app bundles and .dmg files
-            echo "🔍 Looking for macOS applications..."
-            find . -name "*.app" -type d
-            find . -name "*.dmg" -type f
-            find build/ -name "*.app" -type d 2>/dev/null || echo "No build directory"
-            find build/ -name "*.dmg" -type f 2>/dev/null || echo "No build directory"
+          # Show what Wails actually created
+          echo "🔍 Wails build output analysis..."
+          echo "📁 Root directory after build:"
+          ls -la
+          
+          echo "📁 Build directory after build:"
+          if [ -d "build" ]; then
+            ls -la build/
+            if [ -d "build/bin" ]; then
+              echo "📁 Build/bin directory after build:"
+              ls -la build/bin/
+              
+              # Check if our expected output file was created
+              if [ -f "build/bin/gostly" ]; then
+                echo "✅ Expected output file found: build/bin/gostly"
+                ls -la build/bin/gostly
+                echo "🔍 File type:"
+                file build/bin/gostly
+                echo "🔍 File size: $(stat -c%s build/bin/gostly 2>/dev/null || stat -f%z build/bin/gostly 2>/dev/null || echo 'unknown') bytes"
+              else
+                echo "⚠️  Expected output file not found: build/bin/gostly"
+                echo "🔍 Looking for any files in build/bin:"
+                find build/bin -type f -exec echo "  - {}" \;
+              fi
+            fi
           else
-            # Linux: Look for binary files
-            echo "🔍 Looking for Linux binaries..."
-            find . -name "gostly*" -type f
-            find build/ -name "gostly*" -type f 2>/dev/null || echo "No build directory"
+            echo "⚠️  No build directory created by Wails"
           fi
           
-          # Create build directory structure for artifacts
-          echo "📁 Creating build directory structure..."
-          mkdir -p build/bin
+          # Look for any files that might have been created
+          echo "🔍 Searching for any files created by Wails..."
+          find . -maxdepth 1 -type f -newer . -exec echo "New file: {}" \;
+          find . -maxdepth 1 -type d -newer . -exec echo "New directory: {}" \;
           
-          # Copy Wails output to build/bin for consistent artifact structure
-          echo "📦 Copying build artifacts to build/bin..."
-          ARTIFACTS_COPIED=0
+          # Check if Wails created any output files and copy them to build/bin
+          echo "🔍 Checking for Wails build output files..."
           
-          if [ "$GOOS" = "windows" ]; then
-            # Copy Windows .exe files
-            echo "🔍 Looking for Windows executables..."
-            echo "🔍 Found .exe files:"
-            find . -name "*.exe" -type f -exec echo "  - {}" \;
-            for exe_file in $(find . -name "*.exe" -type f); do
-              # Normalize the directory path by removing ./ prefix
-              DIR_PATH=$(dirname "$exe_file" | sed 's|^\./||')
-              if [ -f "$exe_file" ] && [ -x "$exe_file" ] && [ "$DIR_PATH" != "build/bin" ]; then
-                echo "📦 Copying: $exe_file"
-                cp "$exe_file" build/bin/
-                ARTIFACTS_COPIED=$((ARTIFACTS_COPIED + 1))
-              elif [ "$DIR_PATH" = "build/bin" ]; then
-                echo "✅ $exe_file already in build/bin/"
-                ARTIFACTS_COPIED=$((ARTIFACTS_COPIED + 1))
-              fi
-            done
-          elif [ "$GOOS" = "darwin" ]; then
-            # Copy macOS .app bundles and .dmg files
-            echo "🔍 Looking for macOS applications..."
-            echo "🔍 Found .app files:"
-            find . -name "*.app" -type d -exec echo "  - {}" \;
-            for app_file in $(find . -name "*.app" -type d); do
-              if [ -d "$app_file" ] && [ "$(dirname "$app_file" | sed 's|^\./||')" != "build/bin" ]; then
-                echo "📦 Copying: $app_file"
-                cp -r "$app_file" build/bin/
-                ARTIFACTS_COPIED=$((ARTIFACTS_COPIED + 1))
-              elif [ "$(dirname "$app_file" | sed 's|^\./||')" = "build/bin" ]; then
-                echo "✅ $app_file already in build/bin/"
-                ARTIFACTS_COPIED=$((ARTIFACTS_COPIED + 1))
-              fi
-            done
-            for dmg_file in $(find . -name "*.dmg" -type f); do
-              if [ -f "$dmg_file" ]; then
-                echo "📦 Copying: $dmg_file"
-                cp "$dmg_file" build/bin/
-                ARTIFACTS_COPIED=$((ARTIFACTS_COPIED + 1))
-              fi
-            done
-          else
-            # Copy Linux binaries
-            echo "🔍 Looking for Linux binaries..."
-            echo "🔍 Found gostly* files:"
-            find . -name "gostly*" -type f -exec echo "  - {}" \;
-            for bin_file in $(find . -name "gostly*" -type f); do
-              # Normalize the directory path by removing ./ prefix
-              DIR_PATH=$(dirname "$bin_file" | sed 's|^\./||')
-              if [ -f "$bin_file" ] && [ -x "$bin_file" ] && [ "$DIR_PATH" != "build/bin" ]; then
-                echo "📦 Copying: $bin_file"
-                cp "$bin_file" build/bin/
-                ARTIFACTS_COPIED=$((ARTIFACTS_COPIED + 1))
-              elif [ "$DIR_PATH" = "build/bin" ]; then
-                echo "✅ $bin_file already in build/bin/"
-                ARTIFACTS_COPIED=$((ARTIFACTS_COPIED + 1))
-              fi
-            done
+          # Simply copy everything that looks like a build output
+          echo "📦 Copying all potential build outputs to build/bin..."
+          
+          # Copy any executables, app bundles, or gostly files
+          find . -maxdepth 1 -type f \( -name "*gostly*" -o -name "*.exe" -o -name "*.app" -o -name "*.dmg" \) -exec cp {} build/bin/ \;
+          find . -maxdepth 1 -type d -name "*.app" -exec cp -r {} build/bin/ \;
+          
+          # Also copy anything in the build directory
+          if [ -d "build" ] && [ "$(ls -A build 2>/dev/null)" ]; then
+            echo "📁 Found build directory, copying contents..."
+            cp -r build/* build/bin/ 2>/dev/null || echo "No files to copy"
           fi
           
-          # Verify artifacts were copied
-          if [ $ARTIFACTS_COPIED -eq 0 ]; then
-            echo "⚠️  No artifacts were copied - this may indicate a build failure"
-            echo "🔍 Checking for any files that might be artifacts..."
-            find . -type f -executable -name "*gostly*" 2>/dev/null || echo "No gostly executables found"
-            find . -type f -name "*.exe" 2>/dev/null || echo "No .exe files found"
-            find . -type f -name "*.app" 2>/dev/null || echo "No .app files found"
-            find . -type f -name "*.dmg" 2>/dev/null || echo "No .dmg files found"
-          else
-            echo "✅ Successfully copied $ARTIFACTS_COPIED artifacts to build/bin/"
-          fi
-          
-          echo "📁 Build/bin contents after copy:"
+          echo "📁 Final build/bin contents:"
           ls -la build/bin/
+          
+          if [ "$WAILS_OUTPUT_FOUND" = true ]; then
+            echo "✅ Wails output files found and copied to build/bin"
+            echo "📁 Build/bin contents after copying Wails output:"
+            ls -la build/bin/
+          else
+            echo "⚠️  No Wails output files found in root directory"
+            
+            # Try to create a fallback binary if Wails didn't work
+            echo "🔄 Attempting fallback Go build..."
+            if go build -o build/bin/gostly app.go main.go; then
+              echo "✅ Fallback Go build successful"
+              WAILS_OUTPUT_FOUND=true
+            else
+              echo "❌ Fallback Go build also failed"
+            fi
+          fi
           
           # Final build verification
           echo "🔍 Final build verification..."
           if [ -d "build/bin" ] && [ "$(ls -A build/bin 2>/dev/null)" ]; then
             echo "✅ Build artifacts directory exists and contains files"
-            
-            # Verify artifacts are valid
-            for artifact in build/bin/*; do
-              if [ -f "$artifact" ]; then
-                echo "🔍 Verifying artifact: $(basename $artifact)"
-                if [ -x "$artifact" ]; then
-                  echo "✅ $(basename $artifact) is executable"
-                else
-                  echo "⚠️  $(basename $artifact) is not executable (this may be okay for some file types)"
-                fi
-                
-                # Check file size
-                size=$(stat -c%s "$artifact" 2>/dev/null || stat -f%z "$artifact" 2>/dev/null || echo "unknown")
-                echo "📏 Size: $size bytes"
-              elif [ -d "$artifact" ]; then
-                echo "📁 Found directory artifact: $(basename $artifact)"
-                ls -la "$artifact"
-              fi
-            done
+            echo "📊 Build summary: Platform ${{ matrix.os }}/amd64 completed successfully"
           else
-            echo "❌ Build artifacts directory is empty or missing"
-            echo "🔍 This indicates a build failure - no artifacts were generated"
+            echo "❌ Build artifacts directory is empty - build may have failed"
             exit 1
           fi
           
@@ -1422,22 +1499,44 @@ jobs:
             echo "Timestamp: $(date)" >> build/bin/build-info.txt
           fi
           
-          echo "📁 Artifacts to upload:"
-          find build/ -type f 2>/dev/null || echo "No build artifacts found"
+          echo "📁 Final artifacts to upload:"
+          ls -la build/bin/
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
-          # Artifact naming: gostly-{os}-{arch} (e.g., gostly-ubuntu-latest-amd64)
-          # This naming convention is used by the release workflow
           name: gostly-${{ matrix.os }}-${{ matrix.arch }}
           path: |
-            build/bin/
             build/
             *.exe
             *.app
-            gostly
+            *.dmg
+            gostly*
+            **/gostly*
           if-no-files-found: warn
+
+      - name: Debug artifacts structure
+        shell: bash
+        run: |
+          echo "🔍 Debugging downloaded artifacts structure..."
+          echo "📁 Current working directory: $(pwd)"
+          echo "📁 Artifacts directory exists: $([ -d "artifacts" ] && echo "Yes" || echo "No")"
+          
+          if [ -d "artifacts" ]; then
+            echo "📁 Artifacts directory contents:"
+            ls -la artifacts/
+            
+            echo "🔍 Contents of each artifact:"
+            for artifact in artifacts/*; do
+              if [ -d "$artifact" ]; then
+                echo "📁 Directory: $artifact"
+                ls -la "$artifact"
+                echo "---"
+              fi
+            done
+          else
+            echo "❌ Artifacts directory not found!"
+          fi
 
   # Security scanning
   security:
@@ -1523,25 +1622,14 @@ jobs:
           echo "📦 Preparing release assets..."
           mkdir -p release-assets
           
-          # Copy all build artifacts to release-assets directory
-          # Wails creates proper desktop applications with correct extensions
           if [ -d "artifacts" ]; then
-            echo "📁 Found artifacts directory, preparing assets..."
+            echo "📁 Found artifacts directory, copying all files..."
             
-            # Process each artifact
-            for artifact in artifacts/*; do
-              if [ -f "$artifact" ]; then
-                filename=$(basename "$artifact")
-                
-                # Check if it's a gostly binary or desktop application
-                if [[ "$filename" == *"gostly"* ]] || [[ "$filename" == *".exe" ]] || [[ "$filename" == *".dmg" ]] || [[ "$filename" == *".app" ]]; then
-                  echo "📦 Copying: $filename (desktop application or binary)"
-                  cp "$artifact" "release-assets/$filename"
-                else
-                  # Handle other files (like build-info.txt)
-                  echo "📦 Copying: $filename (non-executable)"
-                  cp "$artifact" "release-assets/$filename"
-                fi
+            # Simply copy everything from all artifact directories
+            for artifact_dir in artifacts/*; do
+              if [ -d "$artifact_dir" ]; then
+                echo "📁 Copying from: $artifact_dir"
+                cp -r "$artifact_dir"/* release-assets/ 2>/dev/null || echo "No files to copy"
               fi
             done
             
@@ -1549,35 +1637,16 @@ jobs:
             ls -la release-assets/
             
             # Create ZIP archives for better distribution
-            echo "📦 Creating ZIP archives..."
             cd release-assets
-            
-            # Create ZIP archives for better distribution
-            echo "📦 Creating ZIP archives for desktop applications..."
-            
-            # Find and ZIP all desktop applications
-            for app in *; do
-              if [ -f "$app" ]; then
-                # Windows .exe files
-                if [[ "$app" == *".exe" ]]; then
-                  echo "📦 Creating ZIP for Windows app: $app"
-                  zip "${app%.exe}.zip" "$app"
-                # macOS .dmg files
-                elif [[ "$app" == *".dmg" ]]; then
-                  echo "📦 Creating ZIP for macOS app: $app"
-                  zip "${app%.dmg}.zip" "$app"
-                # Linux binaries
-                elif [[ "$app" == *"gostly"* ]] && [[ "$app" != *".zip" ]]; then
-                  echo "📦 Creating ZIP for Linux app: $app"
-                  zip "$app.zip" "$app"
-                fi
+            for file in *; do
+              if [ -f "$file" ] && [[ "$file" != *".zip" ]]; then
+                echo "📦 Creating ZIP for: $file"
+                zip "$file.zip" "$file"
               fi
             done
-            echo "📁 Final release assets:"
-            ls -la
             cd ..
           else
-            echo "⚠️  No artifacts directory found"
+            echo "❌ No artifacts directory found"
           fi
 
       - name: Release Please

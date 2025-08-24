@@ -9,6 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 > The changelog will be automatically updated based on conventional commit messages. 
 > See [docs/RELEASE_PLEASE_GUIDE.md](docs/RELEASE_PLEASE_GUIDE.md) for more details.
 
+## 1.0.0 (2025-08-24)
+
+
+### Features
+
+* add automatically release on push main ([c573012](https://github.com/imansprn/gostly/commit/c5730126813d2b313eb60f0b1772b3cae7e2064b))
+* fix GOST detection in Applications folder and add custom app icon ([6e13769](https://github.com/imansprn/gostly/commit/6e137696e3f47240671508d918922a3cbff8d45c))
+
+
+### Bug Fixes
+
+* build on amd64 and arm64 ([4108f4a](https://github.com/imansprn/gostly/commit/4108f4adeaa6944d8a446bb4bb4cbb6f28dbc748))
+* Improve UI/UX design ([0c37126](https://github.com/imansprn/gostly/commit/0c37126e493ba0665dda9794b0ddfa91047adf65))
+
 ## [Unreleased]
 
 ### Added

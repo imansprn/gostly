@@ -30,6 +30,10 @@ jobs:
             platform: darwin/arm64
             artifact_name: gostly-macos-arm64
             file_extension: .dmg
+          - os: ubuntu-latest
+            platform: linux/amd64
+            artifact_name: gostly-linux-amd64
+            file_extension: .tar.gz
           - os: windows-latest
             platform: windows/amd64
             artifact_name: gostly-windows-amd64
@@ -60,6 +64,14 @@ jobs:
           cache: npm
           cache-dependency-path: frontend/package-lock.json
 
+      - name: Set up Node.js (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
       - name: Set up Node.js (Windows)
         if: matrix.os == 'windows-latest'
         uses: actions/setup-node@v4
@@ -84,6 +96,44 @@ jobs:
         if: matrix.os == 'macos-latest'
         run: |
           wails build -platform ${{ matrix.platform }} -clean -ldflags "-s -w"
+
+      - name: Build application (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.0-dev rpm
+          wails build -platform ${{ matrix.platform }} -clean -ldflags "-s -w"
+
+      - name: Package Linux tar.gz
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          mkdir -p dist
+          tar -C build/bin -czf dist/gostly-linux-amd64.tar.gz gostly
+
+      - name: Build .deb package (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get install -y ruby ruby-dev rubygems build-essential
+          sudo gem install --no-document fpm
+          mkdir -p pkg/root/usr/local/bin
+          cp build/bin/gostly pkg/root/usr/local/bin/
+          fpm -s dir -t deb -n gostly -v ${GITHUB_REF#refs/tags/} \
+              --description "Gostly - GOST Proxy Manager" \
+              --license "MIT" \
+              --vendor "Gostly" \
+              --url "https://github.com/imansprn/gostly" \
+              --after-install <(echo '#!/bin/sh') \
+              -C pkg/root .
+
+      - name: Upload Linux artifacts
+        if: matrix.os == 'ubuntu-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: |
+            dist/gostly-linux-amd64.tar.gz
+            *.deb
+          retention-days: 30
 
       - name: Build application (Windows)
         if: matrix.os == 'windows-latest' && matrix.build_type != 'installer'
@@ -178,6 +228,8 @@ jobs:
           files: |
             artifacts/gostly-macos-amd64/gostly-*.dmg
             artifacts/gostly-macos-arm64/gostly-*.dmg
+            artifacts/gostly-linux-amd64/gostly-linux-amd64.tar.gz
+            artifacts/gostly-linux-amd64/*.deb
             artifacts/gostly-windows-amd64/gostly.exe
             artifacts/gostly-windows-installer/gostly-installer.exe
         env:
@@ -205,6 +257,16 @@ jobs:
           # Upload Windows installer
           if [ -f "artifacts/gostly-windows-installer/gostly-installer.exe" ]; then
             gh release upload ${{ steps.get_tag.outputs.tag }} "artifacts/gostly-windows-installer/gostly-installer.exe" --clobber
+          fi
+          
+          # Upload Linux files
+          if ls artifacts/gostly-linux-amd64/*.deb >/dev/null 2>&1; then
+            for deb in artifacts/gostly-linux-amd64/*.deb; do
+              gh release upload ${{ steps.get_tag.outputs.tag }} "$deb" --clobber
+            done
+          fi
+          if [ -f "artifacts/gostly-linux-amd64/gostly-linux-amd64.tar.gz" ]; then
+            gh release upload ${{ steps.get_tag.outputs.tag }} "artifacts/gostly-linux-amd64/gostly-linux-amd64.tar.gz" --clobber
           fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

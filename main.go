@@ -28,7 +28,7 @@ func main() {
 
 	// Create application with options
 	err := wails.Run(&options.App{
-		Title:  "gostly",
+		Title:  "Gostly",
 		Width:  1400,
 		Height: 900,
 		AssetServer: &assetserver.Options{
@@ -42,7 +42,7 @@ func main() {
 		},
 		// Platform-specific options
 		Mac: &mac.Options{
-			TitleBar: mac.TitleBarHiddenInset(),
+			TitleBar: mac.TitleBarDefault(),
 			About: &mac.AboutInfo{
 				Title:   "Gostly",
 				Message: "GOST Proxy Manager",

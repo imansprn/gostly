@@ -39,35 +39,66 @@ type DB struct {
 
 // New creates a new database connection
 func New() (*DB, error) {
-	// Get the application directory
-	appDir, err := os.UserConfigDir()
-	if err != nil {
-		return nil, err
+	// Try multiple writable locations in order
+	locations := []struct {
+		desc string
+		prep func() (string, error)
+	}{
+		{desc: "user config dir", prep: os.UserConfigDir},
+		{desc: "user cache dir", prep: os.UserCacheDir},
+		{desc: "user home dir", prep: os.UserHomeDir},
+		{desc: "temp dir", prep: func() (string, error) { return os.TempDir(), nil }},
+		{desc: "current working dir", prep: func() (string, error) { return os.Getwd() }},
 	}
 
-	// Create the application directory if it doesn't exist
-	dbDir := filepath.Join(appDir, "gostly")
-	err = os.MkdirAll(dbDir, 0755)
-	if err != nil {
-		return nil, err
+	var lastErr error
+	for _, loc := range locations {
+		base, err := loc.prep()
+		if err != nil || base == "" {
+			if err == nil {
+				err = fmt.Errorf("empty base path")
+			}
+			lastErr = fmt.Errorf("get %s failed: %w", loc.desc, err)
+			continue
+		}
+
+		// Ensure app directory exists
+		dbDir := filepath.Join(base, "gostly")
+		if mkErr := os.MkdirAll(dbDir, 0755); mkErr != nil {
+			lastErr = fmt.Errorf("mkdir %s failed: %w", dbDir, mkErr)
+			continue
+		}
+
+		dbPath := filepath.Join(dbDir, "gostly.db")
+		conn, openErr := sql.Open("sqlite3", dbPath)
+		if openErr != nil {
+			lastErr = fmt.Errorf("open sqlite at %s failed: %w", dbPath, openErr)
+			continue
+		}
+
+		// Verify connection is usable
+		if pingErr := conn.Ping(); pingErr != nil {
+			conn.Close()
+			lastErr = fmt.Errorf("ping sqlite at %s failed: %w", dbPath, pingErr)
+			continue
+		}
+
+		db := &DB{conn: conn}
+		if schemaErr := db.createSchema(); schemaErr != nil {
+			conn.Close()
+			lastErr = fmt.Errorf("create schema at %s failed: %w", dbPath, schemaErr)
+			continue
+		}
+
+		// Log chosen path for visibility
+		fmt.Printf("DB initialized at: %s (location: %s)\n", dbPath, loc.desc)
+		return db, nil
 	}
 
-	// Connect to the database
-	dbPath := filepath.Join(dbDir, "gostly.db")
-	conn, err := sql.Open("sqlite3", dbPath)
-	if err != nil {
-		return nil, err
+	if lastErr == nil {
+		lastErr = fmt.Errorf("unknown error creating database")
 	}
-
-	// Create the database schema if it doesn't exist
-	db := &DB{conn: conn}
-	err = db.createSchema()
-	if err != nil {
-		conn.Close()
-		return nil, err
-	}
-
-	return db, nil
+	return nil, lastErr
 }
 
 // createSchema creates the database schema if it doesn't exist
@@ -105,7 +136,150 @@ func (db *DB) createSchema() error {
 		return err
 	}
 
+	// Create the host_mappings table
+	_, err = db.conn.Exec(`
+		CREATE TABLE IF NOT EXISTS host_mappings (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			hostname TEXT NOT NULL UNIQUE,
+			ip TEXT NOT NULL,
+			port INTEGER NOT NULL,
+			protocol TEXT NOT NULL,
+			active INTEGER NOT NULL DEFAULT 1
+		)
+	`)
+	if err != nil {
+		return err
+	}
+
+	// Add default profiles if none exist
+	if err := db.addDefaultProfiles(); err != nil {
+		fmt.Printf("Warning: Failed to add default profiles: %v\n", err)
+	}
+
 	return nil
+}
+
+// addDefaultProfiles adds some default profiles if the profiles table is empty
+func (db *DB) addDefaultProfiles() error {
+	// Check if profiles table is empty
+	var count int
+	err := db.conn.QueryRow("SELECT COUNT(*) FROM profiles").Scan(&count)
+	if err != nil {
+		return err
+	}
+
+	if count > 0 {
+		return nil // Already has profiles
+	}
+
+	// Add default profiles
+	defaultProfiles := []Profile{
+		{
+			Name:     "Local SOCKS5",
+			Type:     "forward",
+			Listen:   ":1080",
+			Remote:   "127.0.0.1:1080",
+			Username: "",
+			Password: "",
+		},
+		{
+			Name:     "HTTP Proxy",
+			Type:     "http",
+			Listen:   ":8080",
+			Remote:   "example.com:80",
+			Username: "demo-user",
+			Password: "demo-password",
+		},
+	}
+
+	for _, profile := range defaultProfiles {
+		if err := db.AddProfile(&profile); err != nil {
+			fmt.Printf("Warning: Failed to add default profile %s: %v\n", profile.Name, err)
+		}
+	}
+
+	fmt.Printf("Added %d default profiles\n", len(defaultProfiles))
+	return nil
+}
+
+// HostMapping represents a hostname to destination mapping
+type HostMapping struct {
+	ID       int64  `json:"id"`
+	Hostname string `json:"hostname"`
+	IP       string `json:"ip"`
+	Port     int    `json:"port"`
+	Protocol string `json:"protocol"` // HTTP | HTTPS | TCP
+	Active   bool   `json:"active"`
+}
+
+// GetHostMappings returns all host mappings
+func (db *DB) GetHostMappings() ([]HostMapping, error) {
+	rows, err := db.conn.Query("SELECT id, hostname, ip, port, protocol, active FROM host_mappings ORDER BY hostname ASC")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var mappings []HostMapping
+	for rows.Next() {
+		var m HostMapping
+		var activeInt int
+		if err := rows.Scan(&m.ID, &m.Hostname, &m.IP, &m.Port, &m.Protocol, &activeInt); err != nil {
+			return nil, err
+		}
+		m.Active = activeInt == 1
+		mappings = append(mappings, m)
+	}
+	return mappings, nil
+}
+
+// UpsertHostMapping inserts or updates a host mapping by hostname
+func (db *DB) UpsertHostMapping(m *HostMapping) error {
+	// Try update first
+	res, err := db.conn.Exec(
+		"UPDATE host_mappings SET ip = ?, port = ?, protocol = ?, active = ? WHERE hostname = ?",
+		m.IP, m.Port, m.Protocol, boolToInt(m.Active), m.Hostname,
+	)
+	if err != nil {
+		return err
+	}
+	rowsAffected, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rowsAffected == 0 {
+		// Insert
+		res, err = db.conn.Exec(
+			"INSERT INTO host_mappings (hostname, ip, port, protocol, active) VALUES (?, ?, ?, ?, ?)",
+			m.Hostname, m.IP, m.Port, m.Protocol, boolToInt(m.Active),
+		)
+		if err != nil {
+			return err
+		}
+		id, err := res.LastInsertId()
+		if err == nil {
+			m.ID = id
+		}
+	}
+	return nil
+}
+
+// DeleteHostMapping deletes a host mapping by hostname or id
+func (db *DB) DeleteHostMappingByHostname(hostname string) error {
+	_, err := db.conn.Exec("DELETE FROM host_mappings WHERE hostname = ?", hostname)
+	return err
+}
+
+func (db *DB) DeleteHostMappingByID(id int64) error {
+	_, err := db.conn.Exec("DELETE FROM host_mappings WHERE id = ?", id)
+	return err
+}
+
+func boolToInt(b bool) int {
+	if b {
+		return 1
+	}
+	return 0
 }
 
 // Close closes the database connection
@@ -115,24 +289,37 @@ func (db *DB) Close() error {
 
 // GetProfiles returns all profiles
 func (db *DB) GetProfiles() ([]Profile, error) {
+	fmt.Printf("DB: GetProfiles called\n")
+
 	rows, err := db.conn.Query("SELECT id, name, type, listen, remote, username, password FROM profiles")
 	if err != nil {
+		fmt.Printf("DB: GetProfiles query error: %v\n", err)
 		return nil, err
 	}
 	defer rows.Close()
+
+	fmt.Printf("DB: GetProfiles query executed, scanning rows\n")
 
 	var profiles []Profile
 	for rows.Next() {
 		var p Profile
 		err := rows.Scan(&p.ID, &p.Name, &p.Type, &p.Listen, &p.Remote, &p.Username, &p.Password)
 		if err != nil {
+			fmt.Printf("DB: GetProfiles scan error: %v\n", err)
 			return nil, err
 		}
 		// Default status is stopped
 		p.Status = "stopped"
 		profiles = append(profiles, p)
+		fmt.Printf("DB: GetProfiles scanned profile: %s (ID: %d)\n", p.Name, p.ID)
 	}
 
+	if err = rows.Err(); err != nil {
+		fmt.Printf("DB: GetProfiles rows error: %v\n", err)
+		return nil, err
+	}
+
+	fmt.Printf("DB: GetProfiles returning %d profiles\n", len(profiles))
 	return profiles, nil
 }
 

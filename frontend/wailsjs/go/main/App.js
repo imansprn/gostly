@@ -10,6 +10,14 @@ export function ClearLogs() {
   return window['go']['main']['App']['ClearLogs']();
 }
 
+export function DeleteHostMappingByHostname(arg1) {
+  return window['go']['main']['App']['DeleteHostMappingByHostname'](arg1);
+}
+
+export function DeleteHostMappingByID(arg1) {
+  return window['go']['main']['App']['DeleteHostMappingByID'](arg1);
+}
+
 export function DeleteProfile(arg1) {
   return window['go']['main']['App']['DeleteProfile'](arg1);
 }
@@ -22,12 +30,28 @@ export function GetGostDebugInfo() {
   return window['go']['main']['App']['GetGostDebugInfo']();
 }
 
+export function GetGostLogLevel() {
+  return window['go']['main']['App']['GetGostLogLevel']();
+}
+
 export function GetGostVersion() {
   return window['go']['main']['App']['GetGostVersion']();
 }
 
+export function GetHostMappings() {
+  return window['go']['main']['App']['GetHostMappings']();
+}
+
 export function GetLogs() {
   return window['go']['main']['App']['GetLogs']();
+}
+
+export function GetLogsByLevel(arg1) {
+  return window['go']['main']['App']['GetLogsByLevel'](arg1);
+}
+
+export function GetLogsBySource(arg1) {
+  return window['go']['main']['App']['GetLogsBySource'](arg1);
 }
 
 export function GetProfile(arg1) {
@@ -38,6 +62,10 @@ export function GetProfiles() {
   return window['go']['main']['App']['GetProfiles']();
 }
 
+export function GetProfilesCount() {
+  return window['go']['main']['App']['GetProfilesCount']();
+}
+
 export function GetRecentActivityLogs(arg1) {
   return window['go']['main']['App']['GetRecentActivityLogs'](arg1);
 }
@@ -46,18 +74,46 @@ export function GetRecentLogs(arg1) {
   return window['go']['main']['App']['GetRecentLogs'](arg1);
 }
 
+export function GetTimelineEvents() {
+  return window['go']['main']['App']['GetTimelineEvents']();
+}
+
 export function IsGostAvailable() {
   return window['go']['main']['App']['IsGostAvailable']();
+}
+
+export function IsHostRouterRunning() {
+  return window['go']['main']['App']['IsHostRouterRunning']();
+}
+
+export function SetGostLogLevel(arg1) {
+  return window['go']['main']['App']['SetGostLogLevel'](arg1);
+}
+
+export function StartHostRouter(arg1) {
+  return window['go']['main']['App']['StartHostRouter'](arg1);
 }
 
 export function StartProfile(arg1) {
   return window['go']['main']['App']['StartProfile'](arg1);
 }
 
+export function StopHostRouter() {
+  return window['go']['main']['App']['StopHostRouter']();
+}
+
 export function StopProfile(arg1) {
   return window['go']['main']['App']['StopProfile'](arg1);
 }
 
+export function TestConnection() {
+  return window['go']['main']['App']['TestConnection']();
+}
+
 export function UpdateProfile(arg1) {
   return window['go']['main']['App']['UpdateProfile'](arg1);
+}
+
+export function UpsertHostMapping(arg1) {
+  return window['go']['main']['App']['UpsertHostMapping'](arg1);
 }

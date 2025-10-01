@@ -1,248 +1,39 @@
-name: Release Please - Automated Releases
+name: Release
 
 on:
-  release:
-    types: [published, created]
+  push:
+    branches: [ main ]
   workflow_dispatch:
-    inputs:
-      version:
-        description: 'Release version (e.g., v1.0.0)'
-        required: false
-        default: ''
 
 permissions:
   contents: write
   pull-requests: write
 
 jobs:
-  # Download build artifacts from main workflow
-  download-artifacts:
-    name: Download Build Artifacts
-    runs-on: ubuntu-latest
-    # Only run if this is a manual trigger or if we're creating a release
-    if: github.event_name == 'workflow_dispatch' || github.event_name == 'release'
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Download all build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: artifacts/
-          pattern: gostly-*-*
-
-      - name: List downloaded artifacts
-        run: |
-          echo "📁 Downloaded artifacts:"
-          ls -la artifacts/
-          for artifact_dir in artifacts/*/; do
-            if [ -d "$artifact_dir" ]; then
-              echo "📦 $artifact_dir contents:"
-              ls -la "$artifact_dir"
-            fi
-          done
-          
-          # Check if we have any artifacts
-          if [ ! -d "artifacts" ] || [ -z "$(ls -A artifacts 2>/dev/null)" ]; then
-            echo "❌ No build artifacts found!"
-            echo "This workflow requires build artifacts from the main CI/CD pipeline."
-            echo "Please ensure the main workflow has completed successfully."
-            exit 1
-          fi
-          
-          echo "✅ Artifacts found and ready for processing"
-
-  # Release Please - Automated release management
   release-please:
-    name: Release Please
     runs-on: ubuntu-latest
-    needs: download-artifacts
-    outputs:
-      release_created: ${{ steps.release.outputs.release_created }}
-      upload_url: ${{ steps.release.outputs.upload_url }}
-      tag_name: ${{ steps.release.outputs.tag_name }}
-      name: ${{ steps.release.outputs.name }}
-      body: ${{ steps.release.outputs.body }}
-      major: ${{ steps.release.outputs.major }}
-      minor: ${{ steps.release.outputs.minor }}
-      patch: ${{ steps.release.outputs.patch }}
-    
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Release Please
-        id: release
+        id: rp
         uses: googleapis/release-please-action@v4
         with:
-          # Use a personal access token for release operations
-          token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
-          # Release type for Go applications (built-in strategy)
           release-type: go
-          # Skip GitHub release creation (we'll handle it manually)
-          skip-github-release: true
+          package-name: gostly
+          changelog-types: |
+            [{"type":"feat","section":"Features","hidden":false},
+             {"type":"fix","section":"Bug Fixes","hidden":false},
+             {"type":"perf","section":"Performance","hidden":false},
+             {"type":"refactor","section":"Refactoring","hidden":false},
+             {"type":"docs","section":"Documentation","hidden":false},
+             {"type":"chore","section":"Chores","hidden":true}]
 
-  # Create release package and upload to GitHub
-  create-release-package:
-    name: Create Release Package
-    needs: [download-artifacts, release-please]
-    runs-on: ubuntu-latest
-    if: needs.release-please.outputs.release_created == 'true'
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Download all build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: artifacts/
-
-      - name: Create release package
+      - name: Summary
+        if: steps.rp.outputs.release_created == 'true'
         run: |
-          echo "📦 Creating release package..."
-          
-          VERSION="${{ needs.release-please.outputs.tag_name }}"
-          RELEASE_NAME="${{ needs.release-please.outputs.name }}"
-          
-          echo "Version: $VERSION"
-          echo "Release Name: $RELEASE_NAME"
-          
-          # Create release directory
-          mkdir -p release-package
-          
-          # Process each platform's artifacts
-          for artifact_dir in artifacts/*/; do
-            if [ -d "$artifact_dir" ]; then
-              platform=$(basename "$artifact_dir")
-              echo "📁 Processing $platform..."
-              
-              # Create platform-specific package
-              cd "$artifact_dir"
-              tar -czf "../../release-package/gostly-$platform.tar.gz" *
-              cd ../..
-              
-              echo "✅ Created gostly-$platform.tar.gz"
-            fi
-          done
-          
-          # Create release info
-          echo "Gostly $VERSION Release" > release-package/RELEASE_INFO.txt
-          echo "Release Date: $(date)" >> release-package/RELEASE_INFO.txt
-          echo "Release Name: $RELEASE_NAME" >> release-package/RELEASE_INFO.txt
-          echo "Platforms:" >> release-package/RELEASE_INFO.txt
-          ls -1 release-package/*.tar.gz | sed 's/.*gostly-\(.*\)\.tar\.gz/  - \1/' >> release-package/RELEASE_INFO.txt
-          
-          echo "📦 Release package created:"
-          ls -la release-package/
-
-      - name: Create GitHub Release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ needs.release-please.outputs.tag_name }}
-          release_name: ${{ needs.release-please.outputs.name }}
-          body: |
-            ${{ needs.release-please.outputs.body }}
-            
-            ## 🚀 Downloads
-            
-            This release includes builds for multiple platforms:
-            - Linux (AMD64, ARM64)
-            - macOS (Intel, Apple Silicon)
-            - Windows (AMD64)
-            
-            ## 🔧 Installation
-            
-            Download the appropriate package for your platform and extract it.
-            
-            ## 📝 Changelog
-            
-            See [CHANGELOG.md](CHANGELOG.md) for detailed changes.
-          draft: false
-          prerelease: false
-
-      - name: Upload Release Assets to GitHub
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ needs.release-please.outputs.upload_url }}
-          asset_path: ./release-package/
-          asset_name: gostly-${{ needs.release-please.outputs.tag_name }}
-          asset_content_type: application/octet-stream
-
-      - name: Release Summary
-        run: |
-          echo "🎉 Release completed successfully!"
-          echo "Version: ${{ needs.release-please.outputs.tag_name }}"
-          echo "Release Name: ${{ needs.release-please.outputs.name }}"
-          echo ""
-          echo "📦 Files uploaded:"
-          ls -la release-package/
-          echo ""
-          echo "🔗 GitHub Release: https://github.com/${{ github.repository }}/releases/tag/${{ needs.release-please.outputs.tag_name }}"
-
-  # Manual release trigger (for workflow_dispatch)
-  manual-release:
-    name: Manual Release
-    runs-on: ubuntu-latest
-    needs: [download-artifacts, release-please]
-    if: github.event_name == 'workflow_dispatch' && needs.release-please.outputs.release_created != 'true'
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Download all build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: artifacts/
-
-      - name: Create manual release package
-        run: |
-          echo "📦 Creating manual release package..."
-          
-          VERSION="${{ github.event.inputs.version || 'manual-release' }}"
-          
-          # Create release directory
-          mkdir -p release-package
-          
-          # Process each platform's artifacts
-          for artifact_dir in artifacts/*/; do
-            if [ -d "$artifact_dir" ]; then
-              platform=$(basename "$artifact_dir")
-              echo "📁 Processing $platform..."
-              
-              # Create platform-specific package
-              cd "$artifact_dir"
-              tar -czf "../../release-package/gostly-$platform.tar.gz" *
-              cd ../..
-              
-              echo "✅ Created gostly-$platform.tar.gz"
-            fi
-          done
-          
-          # Create release info
-          echo "Gostly $VERSION Manual Release" > release-package/RELEASE_INFO.txt
-          echo "Release Date: $(date)" >> release-package/RELEASE_INFO.txt
-          echo "Release Type: Manual" >> release-package/RELEASE_INFO.txt
-          echo "Platforms:" >> release-package/RELEASE_INFO.txt
-          ls -1 release-package/*.tar.gz | sed 's/.*gostly-\(.*\)\.tar\.gz/  - \1/' >> release-package/RELEASE_INFO.txt
-          
-          echo "📦 Manual release package created:"
-          ls -la release-package/
-
-      - name: Manual Release Summary
-        run: |
-          echo "📦 Manual release package created successfully!"
-          echo "Version: ${{ github.event.inputs.version || 'manual-release' }}"
-          echo ""
-          echo "📁 Files created:"
-          ls -la release-package/
-          echo ""
-          echo "💡 To create a GitHub release, go to:"
-          echo "   https://github.com/${{ github.repository }}/releases/new"
-          echo "   and upload the files from the release-package/ directory"
+          echo "Release created: ${{ steps.rp.outputs.tag_name }}"
+          echo "Notes file: ${{ steps.rp.outputs.release_notes_path }}"

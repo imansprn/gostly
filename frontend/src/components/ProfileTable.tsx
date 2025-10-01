@@ -7,6 +7,7 @@ interface ProfileTableProps {
   error: string | null;
   onEdit: (profile: Profile) => void;
   onDelete: (id: number) => void;
+  onDeleteConfirm: (id: number, profileName: string) => void;
   onToggle: (id: number, start: boolean) => void;
   gostAvailable?: boolean;
 }
@@ -17,6 +18,7 @@ const ProfileTable: React.FC<ProfileTableProps> = ({
   error,
   onEdit,
   onDelete,
+  onDeleteConfirm,
   onToggle,
   gostAvailable
 }) => {
@@ -223,10 +225,12 @@ const ProfileTable: React.FC<ProfileTableProps> = ({
               
               <button
                 onClick={() => {
-                  if (window.confirm(`Are you sure you want to delete ${selectedProfiles.size} profile(s)?`)) {
-                    selectedProfiles.forEach(id => onDelete(id));
-                    setSelectedProfiles(new Set());
-                  }
+                  const selectedProfilesList = Array.from(selectedProfiles);
+                  const profileNames = selectedProfilesList.map(id => 
+                    profiles.find(p => p.id === id)?.name || `Profile ${id}`
+                  ).join(', ');
+                  onDeleteConfirm(selectedProfilesList[0], `Multiple profiles: ${profileNames}`);
+                  setSelectedProfiles(new Set());
                 }}
                 className="px-3 py-1.5 text-xs bg-slate-100 hover:bg-red-200 text-slate-700 hover:text-red-700 rounded transition-colors"
               >
@@ -347,11 +351,7 @@ const ProfileTable: React.FC<ProfileTableProps> = ({
                     </button>
                     
                     <button
-                      onClick={() => {
-                        if (window.confirm('Are you sure you want to delete this profile?')) {
-                          onDelete(profile.id);
-                        }
-                      }}
+                      onClick={() => onDeleteConfirm(profile.id, profile.name)}
                       className="p-1.5 text-slate-500 hover:text-red-700 hover:bg-red-50 rounded transition-colors"
                       title="Delete profile"
                     >
@@ -503,13 +503,9 @@ const ProfileTable: React.FC<ProfileTableProps> = ({
                     </button>
                     
                     <button
-                      onClick={() => {
-                        if (window.confirm('Are you sure you want to delete this profile?')) {
-                          onDelete(profile.id);
-                        }
-                      }}
-                          className="p-1 text-red-600 hover:text-red-900 hover:bg-red-50 rounded transition-all duration-150"
-                        title="Delete profile"
+                      onClick={() => onDeleteConfirm(profile.id, profile.name)}
+                      className="p-1 text-red-600 hover:text-red-900 hover:bg-red-50 rounded transition-all duration-150"
+                      title="Delete profile"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />

@@ -7,28 +7,56 @@ export function AddProfile(arg1:database.Profile):Promise<number>;
 
 export function ClearLogs():Promise<void>;
 
+export function DeleteHostMappingByHostname(arg1:string):Promise<void>;
+
+export function DeleteHostMappingByID(arg1:number):Promise<void>;
+
 export function DeleteProfile(arg1:number):Promise<void>;
 
 export function GetActivityLogs():Promise<Array<database.ActivityLog>>;
 
 export function GetGostDebugInfo():Promise<Record<string, any>>;
 
+export function GetGostLogLevel():Promise<string>;
+
 export function GetGostVersion():Promise<string>;
 
+export function GetHostMappings():Promise<Array<database.HostMapping>>;
+
 export function GetLogs():Promise<Array<api.LogEntry>>;
+
+export function GetLogsByLevel(arg1:string):Promise<Array<api.LogEntry>>;
+
+export function GetLogsBySource(arg1:string):Promise<Array<api.LogEntry>>;
 
 export function GetProfile(arg1:number):Promise<database.Profile>;
 
 export function GetProfiles():Promise<Array<database.Profile>>;
 
+export function GetProfilesCount():Promise<number>;
+
 export function GetRecentActivityLogs(arg1:number):Promise<Array<database.ActivityLog>>;
 
 export function GetRecentLogs(arg1:number):Promise<Array<api.LogEntry>>;
 
+export function GetTimelineEvents():Promise<Array<api.TimelineEvent>>;
+
 export function IsGostAvailable():Promise<boolean>;
+
+export function IsHostRouterRunning():Promise<boolean|string>;
+
+export function SetGostLogLevel(arg1:string):Promise<void>;
+
+export function StartHostRouter(arg1:string):Promise<void>;
 
 export function StartProfile(arg1:number):Promise<void>;
 
+export function StopHostRouter():Promise<void>;
+
 export function StopProfile(arg1:number):Promise<void>;
 
+export function TestConnection():Promise<string>;
+
 export function UpdateProfile(arg1:database.Profile):Promise<void>;
+
+export function UpsertHostMapping(arg1:database.HostMapping):Promise<void>;

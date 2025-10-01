@@ -57,6 +57,9 @@ const LogsMonitor: React.FC<LogsMonitorProps> = ({ logs, loading, onRefresh, onC
     return true;
   });
 
+  // Sort logs by datetime descending (newest first)
+  const sortedLogs = [...filteredLogs].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+
   // Get unique sources for filter dropdown
   const uniqueSources = Array.from(new Set(logs.map(log => log.source)));
 
@@ -104,18 +107,17 @@ const LogsMonitor: React.FC<LogsMonitorProps> = ({ logs, loading, onRefresh, onC
     URL.revokeObjectURL(url);
   };
 
-  // Format timestamp
+  // Format timestamp to full datetime: YYYY-MM-DD HH:mm:ss
   const formatTimestamp = (timestamp: string) => {
-    const date = new Date(timestamp);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffMins = Math.floor(diffMs / (1000 * 60));
-    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-    
-    if (diffMins < 1) return 'Just now';
-    if (diffMins < 60) return `${diffMins}m ago`;
-    if (diffHours < 24) return `${diffHours}h ago`;
-    return date.toLocaleTimeString();
+    const d = new Date(timestamp);
+    const pad = (n: number) => (n < 10 ? `0${n}` : `${n}`);
+    const yyyy = d.getFullYear();
+    const mm = pad(d.getMonth() + 1);
+    const dd = pad(d.getDate());
+    const hh = pad(d.getHours());
+    const mi = pad(d.getMinutes());
+    const ss = pad(d.getSeconds());
+    return `${yyyy}-${mm}-${dd} ${hh}:${mi}:${ss}`;
   };
 
   // Get level color
@@ -215,32 +217,6 @@ const LogsMonitor: React.FC<LogsMonitorProps> = ({ logs, loading, onRefresh, onC
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
           </div>
-        </div>
-
-        <div className="flex items-center space-x-2">
-          {/* Auto-scroll Toggle */}
-          <button
-            onClick={() => setAutoScroll(!autoScroll)}
-            className={`px-2 py-1 text-xs rounded transition-colors ${
-              autoScroll 
-                ? 'bg-slate-200 text-slate-700' 
-                : 'bg-slate-100 text-slate-600'
-            }`}
-          >
-            {autoScroll ? 'Auto-scroll ON' : 'Auto-scroll OFF'}
-          </button>
-
-          {/* Pause/Resume */}
-          <button
-            onClick={() => setPaused(!paused)}
-            className={`px-2 py-1 text-xs rounded transition-colors ${
-              paused 
-                ? 'bg-slate-200 text-slate-700' 
-                : 'bg-slate-100 text-slate-600'
-            }`}
-          >
-            {paused ? 'Resume' : 'Pause'}
-          </button>
 
           {/* Export */}
           <div className="flex items-center space-x-1">
@@ -295,9 +271,9 @@ const LogsMonitor: React.FC<LogsMonitorProps> = ({ logs, loading, onRefresh, onC
           </div>
         ) : (
           <div className="p-3 space-y-0.5">
-            {filteredLogs.map((log) => (
+            {sortedLogs.map((log) => (
               <div key={log.id} className="flex items-start space-x-2 hover:bg-slate-800 p-1 rounded transition-colors">
-                <span className="text-xs text-slate-500 w-14 flex-shrink-0">
+                <span className="text-xs text-slate-500 w-40 flex-shrink-0">
                   {formatTimestamp(log.timestamp)}
                 </span>
                 <span className={`px-1.5 py-0.5 rounded text-xs font-medium flex-shrink-0 ${getLevelColor(log.level)}`}>

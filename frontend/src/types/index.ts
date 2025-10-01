@@ -44,7 +44,7 @@ export interface LogFilter {
 
 export interface TimelineEvent {
   id: number;
-  type: 'proxy_action' | 'configuration' | 'system' | 'error';
+  type: 'proxy_action' | 'configuration' | 'system' | 'error' | 'host_mapping';
   action: string;
   details: string;
   timestamp: string;

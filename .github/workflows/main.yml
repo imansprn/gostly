@@ -100,28 +100,5 @@ jobs:
           flags: backend
           fail_ci_if_error: false
 
-  release:
-    name: Release
-    needs: [frontend, backend]
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      pull-requests: write
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Release Please
-        id: rp
-        uses: googleapis/release-please-action@v4
-        with:
-          release-type: go
-          package-name: gostly
-
-      - name: Summary
-        if: steps.rp.outputs.release_created == 'true'
-        run: |
-          echo "Release created: ${{ steps.rp.outputs.tag_name }}"
+  # Release workflow is now handled separately in .github/workflows/release.yml
+  # This allows for manual releases and better control over the release process

@@ -21,12 +21,28 @@
     "platforms": [
       "darwin/amd64",
       "darwin/arm64",
-      "linux/amd64",
-      "linux/arm64",
       "windows/amd64"
-    ]
+    ],
+    "nsisType": "multiple",
+    "nsisTemplate": "build/windows/installer.nsh"
   },
   "mac": {
-    "icon": "appicon.icns"
+    "icon": "appicon.icns",
+    "category": "public.app-category.developer-tools",
+    "minimumSystemVersion": "10.13.0",
+    "entitlements": "build/darwin/entitlements.plist",
+    "info": {
+      "CFBundleURLTypes": [
+        {
+          "CFBundleURLName": "gostly",
+          "CFBundleURLSchemes": ["gostly"]
+        }
+      ]
+    }
+  },
+  "windows": {
+    "icon": "build/appicon.png",
+    "webview2Loader": "embed",
+    "nsisType": "multiple"
   }
 }

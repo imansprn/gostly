@@ -320,6 +320,7 @@ const ActivityTimeline: React.FC<ActivityTimelineProps> = ({ events, loading, on
             <span>{totalEvents} events</span>
             <span>{safeEvents.filter(e => e.type === 'proxy_action').length} proxy</span>
             <span>{safeEvents.filter(e => e.type === 'configuration').length} config</span>
+            <span>{safeEvents.filter(e => e.type === 'host_mapping').length} host</span>
             <span>{safeEvents.filter(e => e.type === 'error').length} errors</span>
           </div>
         </div>
@@ -355,7 +356,7 @@ const ActivityTimeline: React.FC<ActivityTimelineProps> = ({ events, loading, on
         <div className="flex items-center space-x-2">
           {/* Event Type Filter */}
           <div className="flex space-x-1">
-            {['all', 'proxy_action', 'configuration', 'system', 'error'].map(filter => (
+            {['all', 'proxy_action', 'configuration', 'host_mapping', 'system', 'error'].map(filter => (
               <button
                 key={filter}
                 onClick={() => setActiveFilter(filter)}
@@ -368,6 +369,7 @@ const ActivityTimeline: React.FC<ActivityTimelineProps> = ({ events, loading, on
                 {filter === 'all' ? 'All' : 
                  filter === 'proxy_action' ? 'Proxy' :
                  filter === 'configuration' ? 'Config' :
+                 filter === 'host_mapping' ? 'Host' :
                  filter === 'system' ? 'System' : 'Errors'}
               </button>
             ))}

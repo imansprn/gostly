@@ -48,6 +48,26 @@ export const mockTimelineEvents = [
   },
   {
     id: 3,
+    type: 'host_mapping' as const,
+    action: 'Host Router Started',
+    details: 'Custom host mapping router started on port 8080',
+    timestamp: '2024-01-01T10:10:00Z',
+    status: 'success' as const,
+    user: 'admin',
+    duration: '3s'
+  },
+  {
+    id: 4,
+    type: 'host_mapping' as const,
+    action: 'Host Mapping Added',
+    details: 'Added host mapping: example.local -> 127.0.0.1:3000',
+    timestamp: '2024-01-01T10:12:00Z',
+    status: 'success' as const,
+    user: 'admin',
+    duration: '1s'
+  },
+  {
+    id: 5,
     type: 'system' as const,
     action: 'GOST Installation',
     details: 'GOST binary automatically installed',

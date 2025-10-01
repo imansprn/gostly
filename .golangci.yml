@@ -1,0 +1,32 @@
+run:
+  timeout: 3m
+  tests: false
+
+linters:
+  disable-all: true
+  enable:
+    - staticcheck     # includes U1000 (unused code)
+    - gosimple
+    - govet
+    - ineffassign
+    - unused
+    - revive
+
+issues:
+  exclude-use-default: false
+  exclude-rules:
+    - path: main\.go
+      linters:
+        - typecheck
+    - linters:
+        - typecheck
+      text: "go tool version"
+    - path: _test\.go
+      linters:
+        - revive
+        - staticcheck
+    - linters:
+        - revive
+      text: "exported function .* should have comment"
+
+

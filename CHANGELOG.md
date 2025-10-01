@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 > The changelog will be automatically updated based on conventional commit messages. 
 > See [docs/RELEASE_PLEASE_GUIDE.md](docs/RELEASE_PLEASE_GUIDE.md) for more details.
 
+## [1.0.32](https://github.com/imansprn/gostly/compare/v1.0.31...v1.0.32) (2025-10-01)
+
+
+### Bug Fixes
+
+* dragable form ([8c21117](https://github.com/imansprn/gostly/commit/8c21117bfcc0a49de3b14a71fb16e89ea9ab4d82))
+* file release ([787ef0e](https://github.com/imansprn/gostly/commit/787ef0ee7a89efcfe6ff78478cd0fdb825bd1a18))
+
 ## 1.0.0 (2025-08-24)
 
 
